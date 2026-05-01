@@ -29,7 +29,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configure(http))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/public/**", "/health").permitAll()
+                .requestMatchers("/api/public/**", "/health", "/f/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(firebaseTokenFilter, UsernamePasswordAuthenticationFilter.class);
