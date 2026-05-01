@@ -122,7 +122,7 @@ public class AdminDashboardService {
         }
 
         activityList.sort(Comparator.comparing(AdminActivityDTO::getTimestamp).reversed());
-        return activityList.stream().limit(20).collect(Collectors.toList());
+        return activityList.stream().limit(10).collect(Collectors.toList());
     }
 
     private String maskFileHash(String fileHash) {

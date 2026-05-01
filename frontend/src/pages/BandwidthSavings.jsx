@@ -20,7 +20,7 @@ export default function BandwidthSavings() {
         setSystemStats(sysRes.data);
         setUserStats(userRes.data);
       } catch (error) {
-        toast.error('Failed to load bandwidth statistics');
+        if (!error.handled) toast.error('Failed to load bandwidth statistics');
       } finally {
         setLoading(false);
       }

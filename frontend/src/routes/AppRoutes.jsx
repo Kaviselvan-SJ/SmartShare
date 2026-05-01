@@ -11,6 +11,7 @@ import BandwidthSavings from '../pages/BandwidthSavings';
 import AdminDashboard from '../pages/AdminDashboard';
 import FileAccess from '../pages/FileAccess';
 import FileDetails from '../pages/FileDetails';
+import Settings from '../pages/Settings';
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute';
 import AdminRouteGuard from './AdminRouteGuard';
@@ -53,11 +54,15 @@ export default function AppRoutes() {
         path="/bandwidth" 
         element={<ProtectedRoute><AdminRouteGuard><AppLayout><BandwidthSavings /></AppLayout></AdminRouteGuard></ProtectedRoute>} 
       />
+      <Route 
+        path="/settings" 
+        element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} 
+      />
 
       {/* Admin Route */}
       <Route 
         path="/admin" 
-        element={<ProtectedRoute><AdminRoute><AppLayout><AdminDashboard /></AppLayout></AdminRoute></ProtectedRoute>} 
+        element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} 
       />
       
       {/* Fallback route */}

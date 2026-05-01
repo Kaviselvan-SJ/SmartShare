@@ -15,7 +15,7 @@ export default function Analytics() {
         const filesRes = await axiosClient.get('/analytics/dashboard/top-files');
         setTopFiles(filesRes.data);
       } catch (error) {
-        toast.error('Failed to load analytics data');
+        if (!error.handled) toast.error('Failed to load analytics data');
       } finally {
         setLoading(false);
       }

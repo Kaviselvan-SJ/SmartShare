@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import Loader from '../components/ui/Loader';
 import StatCard from '../components/ui/StatCard';
-import { Shield, Users, Database, ArrowUpCircle, ArrowDownCircle, Server, Activity } from 'lucide-react';
+import { Shield, Users, Database, ArrowUpCircle, ArrowDownCircle, Server, Activity, LogOut } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 export default function AdminDashboard() {
   const [overview, setOverview] = useState(null);
@@ -13,6 +15,8 @@ export default function AdminDashboard() {
   const [storageStats, setStorageStats] = useState(null);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { logout, currentUser } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -29,13 +33,12 @@ export default function AdminDashboard() {
         
         // Process usage trends for charting
         const trendData = [];
-        const dates = Object.keys(trendsRes.data.uploadsPerDay); // assuming all maps have same dates or we should merge them
         
         // Safely extract unique dates across all three maps
         const allDates = new Set([
-            ...Object.keys(trendsRes.data.uploadsPerDay),
-            ...Object.keys(trendsRes.data.downloadsPerDay),
-            ...Object.keys(trendsRes.data.newUsersPerDay)
+            ...Object.keys(trendsRes.data.uploadsPerDay || {}),
+            ...Object.keys(trendsRes.data.downloadsPerDay || {}),
+            ...Object.keys(trendsRes.data.newUsersPerDay || {})
         ]);
         
         Array.from(allDates).sort().forEach(date => {
@@ -63,6 +66,15 @@ export default function AdminDashboard() {
     fetchAdminData();
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      toast.error('Failed to log out');
+    }
+  };
+
   const formatSize = (bytes) => {
     if (!bytes) return '0 B';
     if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
@@ -71,18 +83,43 @@ export default function AdminDashboard() {
     return bytes + ' B';
   };
 
-  if (loading) return <Loader text="Loading secure admin telemetry..." />;
+  if (loading) return <div className="min-h-screen bg-slate-50"><Loader text="Loading secure admin telemetry..." /></div>;
   if (!overview) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center space-x-3 mb-6">
-        <Shield size={32} className="text-red-500" />
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Admin Control Center</h1>
-          <p className="text-slate-500 mt-1">System observability and privacy-safe analytics.</p>
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center space-x-3">
+          <Shield size={24} className="text-red-500" />
+          <span className="text-xl font-bold tracking-wider text-slate-800">SmartShare <span className="text-red-500">Admin</span></span>
         </div>
-      </div>
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3 border-r pr-6 border-gray-200">
+            <div className="flex flex-col text-right">
+              <span className="text-sm font-semibold text-gray-700">{currentUser?.email?.split('@')[0]}</span>
+              <span className="text-xs text-red-500 font-medium">Administrator</span>
+            </div>
+            <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-red-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-inner">
+              A
+            </div>
+          </div>
+          <button 
+            onClick={handleLogout}
+            className="flex items-center space-x-2 text-slate-500 hover:text-red-600 transition-colors font-medium text-sm"
+          >
+            <LogOut size={18} />
+            <span>Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Admin Control Center</h1>
+            <p className="text-slate-500 mt-1">System observability and privacy-safe analytics.</p>
+          </div>
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Total Users" value={overview.totalUsers} icon={Users} color="indigo" subtitle={`${overview.activeUsersLast24Hours} active in 24h`} />
@@ -171,6 +208,7 @@ export default function AdminDashboard() {
           </table>
         </div>
       </div>
+      </main>
     </div>
   );
 }

@@ -27,19 +27,25 @@ public class AnalyticsService {
             String os = "Unknown";
 
             if (userAgent != null) {
-                if (userAgent.contains("Mobile")) deviceType = "Mobile";
-                else if (userAgent.contains("Tablet")) deviceType = "Tablet";
+                // Device type
+                if (userAgent.contains("Mobile") || userAgent.contains("iPhone")) deviceType = "Mobile";
+                else if (userAgent.contains("Tablet") || userAgent.contains("iPad")) deviceType = "Tablet";
 
-                if (userAgent.contains("Chrome")) browser = "Chrome";
-                else if (userAgent.contains("Firefox")) browser = "Firefox";
-                else if (userAgent.contains("Safari")) browser = "Safari";
-                else if (userAgent.contains("Edge")) browser = "Edge";
+                // Browser — ORDER MATTERS: Edge and Opera must come before Chrome
+                // because their UA strings also contain 'Chrome'
+                if (userAgent.contains("Edg/") || userAgent.contains("EdgA/"))     browser = "Edge";
+                else if (userAgent.contains("OPR/") || userAgent.contains("Opera")) browser = "Opera";
+                else if (userAgent.contains("Chrome"))                               browser = "Chrome";
+                else if (userAgent.contains("Firefox"))                              browser = "Firefox";
+                else if (userAgent.contains("Safari"))                               browser = "Safari";
+                else if (userAgent.contains("MSIE") || userAgent.contains("Trident")) browser = "Internet Explorer";
 
-                if (userAgent.contains("Windows")) os = "Windows";
-                else if (userAgent.contains("Mac OS X")) os = "MacOS";
-                else if (userAgent.contains("Linux")) os = "Linux";
-                else if (userAgent.contains("Android")) os = "Android";
-                else if (userAgent.contains("iOS")) os = "iOS";
+                // OS
+                if (userAgent.contains("Android"))        os = "Android";
+                else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) os = "iOS";
+                else if (userAgent.contains("Windows"))   os = "Windows";
+                else if (userAgent.contains("Mac OS X"))  os = "MacOS";
+                else if (userAgent.contains("Linux"))     os = "Linux";
             }
 
             DownloadAnalyticsEntity analytics = DownloadAnalyticsEntity.builder()

@@ -145,14 +145,11 @@ public class FileUploadService {
     @Transactional(readOnly = true)
     public java.util.List<UploadResponseDTO> getMyFiles() {
         AuthenticatedUser authenticatedUser = (AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        java.util.Optional<UserEntity> userOpt = userRepository.findByFirebaseUid(authenticatedUser.getUid());
         
-        if (userOpt.isEmpty()) {
-            return java.util.Collections.emptyList();
-        }
-
-        return fileRepository.findByOwnerOrderByCreatedAtDesc(userOpt.get()).stream()
-                .map(fileEntity -> buildResponse(fileEntity, false, "Success"))
-                .collect(java.util.stream.Collectors.toList());
+        return userRepository.findByFirebaseUid(authenticatedUser.getUid())
+                .map(user -> fileRepository.findByOwnerOrderByCreatedAtDesc(user).stream()
+                        .map(fileEntity -> buildResponse(fileEntity, false, "Success"))
+                        .collect(java.util.stream.Collectors.toList()))
+                .orElse(java.util.Collections.emptyList()); // New user: safely return empty list
     }
 }

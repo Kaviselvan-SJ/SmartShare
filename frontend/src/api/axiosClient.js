@@ -27,17 +27,20 @@ axiosClient.interceptors.request.use(async (config) => {
 
 axiosClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const { toast } = await import('react-hot-toast');
+
     if (error.response && error.response.status === 401) {
-      import('react-hot-toast').then(({ toast }) => {
-        toast.error('Session expired. Please log in again.');
-      });
+      toast.error('Session expired. Please log in again.');
+      error.handled = true;
       window.location.href = '/login';
     } else if (error.response && error.response.data && error.response.data.error) {
-      import('react-hot-toast').then(({ toast }) => {
-        toast.error(error.response.data.error);
-      });
+      // Show the server-provided error message once from the interceptor.
+      // Individual pages must check error.handled before showing their own toast.
+      toast.error(error.response.data.error);
+      error.handled = true;
     }
+
     return Promise.reject(error);
   }
 );

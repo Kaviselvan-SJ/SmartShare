@@ -39,9 +39,11 @@ public class DashboardAnalyticsService {
     public SystemOverviewDTO getSystemOverview() {
         try {
             String firebaseUid = getAuthenticatedUid();
+
+            // Safe: countByOwner_FirebaseUid returns 0 if user has no files
             long totalFiles = fileRepository.countByOwner_FirebaseUid(firebaseUid);
             long totalDownloads = downloadAnalyticsRepository.countByUserFiles(firebaseUid);
-            
+
             var bandwidthSavings = bandwidthAnalyticsService.calculateUserSavings(firebaseUid);
 
             return SystemOverviewDTO.builder()
@@ -50,9 +52,17 @@ public class DashboardAnalyticsService {
                     .totalBandwidthSaved(bandwidthSavings.getTotalSavedBytes())
                     .averageCompressionRatio(bandwidthSavings.getAverageCompressionRatio())
                     .build();
+        } catch (DashboardAnalyticsException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Failed to calculate user overview", e);
-            throw new DashboardAnalyticsException("Failed to aggregate user overview", e);
+            // Return safe zero-state for brand new users instead of 500
+            return SystemOverviewDTO.builder()
+                    .totalFiles(0)
+                    .totalDownloads(0)
+                    .totalBandwidthSaved(0)
+                    .averageCompressionRatio(0.0)
+                    .build();
         }
     }
 
@@ -76,8 +86,8 @@ public class DashboardAnalyticsService {
                         .build();
             }).collect(Collectors.toList());
         } catch (Exception e) {
-            logger.error("Failed to get top files", e);
-            throw new DashboardAnalyticsException("Failed to aggregate top files", e);
+            logger.warn("Could not load top files (possibly new user): {}", e.getMessage());
+            return List.of();
         }
     }
 
@@ -89,8 +99,8 @@ public class DashboardAnalyticsService {
                     .map(row -> new PopularTagsDTO((String) row[0], (Long) row[1]))
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            logger.error("Failed to get popular tags", e);
-            throw new DashboardAnalyticsException("Failed to aggregate popular tags", e);
+            logger.warn("Could not load popular tags (possibly new user): {}", e.getMessage());
+            return List.of();
         }
     }
 
@@ -109,8 +119,8 @@ public class DashboardAnalyticsService {
                     .build()
             ).collect(Collectors.toList());
         } catch (Exception e) {
-            logger.error("Failed to get recent activity", e);
-            throw new DashboardAnalyticsException("Failed to get recent activity", e);
+            logger.warn("Could not load recent activity (possibly new user): {}", e.getMessage());
+            return List.of();
         }
     }
 

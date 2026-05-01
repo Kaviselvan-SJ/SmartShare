@@ -26,6 +26,48 @@ public class UserEntity extends BaseEntity {
     @Column(nullable = false)
     private String email;
 
+    @Column
+    private String displayName;
+
+    @Column
+    private String jobProfile;
+
+    @Column
+    private String organization;
+
+    @Column
+    private String location;
+
+    @Column(columnDefinition = "TEXT")
+    private String bio;
+
+    @Column
+    private String profileImageUrl;
+
+    @Column
+    private String linkedinUrl;
+
+    @Column
+    private String githubUrl;
+
+    @Column
+    private String portfolioUrl;
+
+    @Column
+    private String experienceLevel;
+
+    @Column
+    private String preferredLanguage;
+
+    @Column
+    private String timezone;
+
+    @Column
+    private Boolean emailNotificationsEnabled;
+
+    @Column
+    private Integer defaultLinkExpiryDays;
+
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<FileEntity> files = new ArrayList<>();

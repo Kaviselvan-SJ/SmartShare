@@ -32,7 +32,7 @@ export default function Dashboard() {
         }));
         setPopularTags(formattedTags);
       } catch (error) {
-        toast.error('Failed to load dashboard data');
+        if (!error.handled) toast.error('Failed to load dashboard data');
         console.error(error);
       } finally {
         setLoading(false);

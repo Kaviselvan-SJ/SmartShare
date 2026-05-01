@@ -20,7 +20,7 @@ export default function MyFiles() {
       const response = await axiosClient.get('/files/my-files');
       setFiles(response.data);
     } catch (error) {
-      toast.error('Failed to load files');
+      if (!error.handled) toast.error('Failed to load files');
       console.error(error);
     } finally {
       setLoading(false);
@@ -41,7 +41,7 @@ export default function MyFiles() {
       setFileToDelete(null);
       fetchFiles(); // Refresh the list
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to delete file');
+      if (!error.handled) toast.error(error.response?.data?.error || 'Failed to delete file');
       setLoading(false);
     }
   };

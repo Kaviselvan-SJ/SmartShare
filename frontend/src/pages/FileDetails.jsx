@@ -24,7 +24,7 @@ export default function FileDetails() {
       const response = await axiosClient.get(`/files/${fileId}/details`);
       setDetails(response.data);
     } catch (error) {
-      toast.error('Failed to load file details');
+      if (!error.handled) toast.error('Failed to load file details');
       navigate('/files');
     } finally {
       setLoading(false);
@@ -46,7 +46,7 @@ export default function FileDetails() {
       setLinkToDelete(null);
       fetchFileDetails(); // Refresh details
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete link');
+      if (!error.handled) toast.error(error.response?.data?.message || 'Failed to delete link');
     } finally {
       setDeletingLink(false);
     }
