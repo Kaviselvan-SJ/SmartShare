@@ -1,12 +1,28 @@
 import axios from 'axios';
+import { auth } from '../auth/firebase';
+import { getIdToken } from 'firebase/auth';
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// TODO: Add request interceptor to attach Firebase ID token
+axiosClient.interceptors.request.use(async (config) => {
+  if (auth.currentUser) {
+    try {
+      const token = await getIdToken(auth.currentUser, true);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error("Error getting Firebase token", error);
+    }
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
 export default axiosClient;

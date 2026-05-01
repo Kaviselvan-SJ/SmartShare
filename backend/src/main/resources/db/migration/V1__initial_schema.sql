@@ -1,0 +1,2 @@
+-- Placeholder for Flyway DB migration
+-- V1 schema will be extracted here later.

@@ -1,0 +1,32 @@
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot
+.spring-boot-devtools.properties
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# OS generated files
+.DS_Store
+
+# Secrets and Environment Variables
+.env
+.env.*
+firebase-service-account.json
+*.p12
+*.pem
+*.key
+
+# Java logs
+*.log

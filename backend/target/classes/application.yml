@@ -3,6 +3,9 @@ spring:
     name: smartshare
   profiles:
     active: dev
+  docker:
+    compose:
+      file: ../infrastructure/docker-compose.yml
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:smartshare}
     username: ${POSTGRES_USER:postgres}
