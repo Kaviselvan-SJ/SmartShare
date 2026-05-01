@@ -20,11 +20,25 @@ public class ShortLinkController {
     private final ShortLinkService shortLinkService;
 
     @PostMapping("/create")
-    public ResponseEntity<ShortLinkResponseDTO> createShortLink(@RequestBody CreateShortLinkRequestDTO request) {
-        AuthenticatedUser authenticatedUser = (AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        
-        ShortLinkResponseDTO response = shortLinkService.createShortLink(request, authenticatedUser.getUid());
-        
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> createShortLink(@RequestBody CreateShortLinkRequestDTO request) {
+        try {
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            ShortLinkResponseDTO response = shortLinkService.createShortLink(request, authenticatedUser.getUid());
+            return ResponseEntity.ok(response);
+        } catch (com.smartshare.exception.shortlink.ShortLinkCreationException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(java.util.Map.of("message", "An unexpected error occurred"));
+        }
+    }
+    @org.springframework.web.bind.annotation.DeleteMapping("/{shortCode}")
+    public ResponseEntity<?> deleteShortLink(@org.springframework.web.bind.annotation.PathVariable String shortCode) {
+        try {
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            shortLinkService.deleteShortLink(shortCode, authenticatedUser.getUid());
+            return ResponseEntity.ok(java.util.Map.of("message", "Short link and associated analytics successfully deleted"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
+        }
     }
 }

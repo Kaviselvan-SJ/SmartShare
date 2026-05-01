@@ -25,9 +25,10 @@ public class DownloadService {
     private final ShortLinkCacheResolver cacheResolver;
     private final ShortLinkRepository shortLinkRepository;
     private final StorageService storageService;
+    private final com.smartshare.service.analytics.AnalyticsService analyticsService;
 
     @Transactional
-    public InputStream processDownload(String shortCode, String password) {
+    public InputStream processDownload(String shortCode, String password, String userAgent, String ipAddress) {
         logger.info("ShortCode {} accessed", shortCode);
 
         // Step 1: Resolve storage path (using cache resolver first)
@@ -44,7 +45,7 @@ public class DownloadService {
             throw new DownloadException(validation.getMessage());
         }
 
-        // Step 6: File metadata is implicitly ready via shortLink.getFile()
+        FileEntity fileEntity = shortLink.getFile();
 
         // Step 7: Download file from MinIO
         InputStream fileStream;
@@ -56,10 +57,12 @@ public class DownloadService {
             throw new DownloadException("Storage failure: Could not retrieve file");
         }
 
-        // Step 8: Increment download count
+        // Step 8: Increment download count and track analytics
         shortLink.setDownloadCount(shortLink.getDownloadCount() + 1);
         shortLinkRepository.save(shortLink);
         logger.info("Download count updated to {}", shortLink.getDownloadCount());
+        
+        analyticsService.trackDownloadEvent(shortCode, fileEntity.getFileHash(), userAgent, ipAddress);
         
         // Step 9: Return stream
         return fileStream;

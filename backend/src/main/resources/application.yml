@@ -1,6 +1,10 @@
 spring:
   application:
     name: smartshare
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
   profiles:
     active: dev
   docker:
@@ -31,3 +35,6 @@ minio:
 
 firebase:
   project-id: ${FIREBASE_PROJECT_ID:your-firebase-project-id}
+
+admin:
+  emails: ${ADMIN_EMAILS:admin@smartshare.com}

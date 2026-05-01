@@ -24,17 +24,23 @@ public class DownloadController {
     @GetMapping("/{shortCode}")
     public ResponseEntity<?> downloadFile(
             @PathVariable String shortCode,
-            @RequestHeader(value = "X-Download-Password", required = false) String password) {
+            @RequestHeader(value = "X-Download-Password", required = false) String password,
+            jakarta.servlet.http.HttpServletRequest request) {
             
         try {
             // Retrieve metadata to get original filename
             FileEntity metadata = downloadService.getFileMetadata(shortCode);
             
+            // Extract request details for analytics
+            String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
+            String ipAddress = request.getRemoteAddr();
+
             // Process the download pipeline
-            InputStream fileStream = downloadService.processDownload(shortCode, password);
+            InputStream fileStream = downloadService.processDownload(shortCode, password, userAgent, ipAddress);
             
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.getFileName() + "\"");
+            headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");
             
             return ResponseEntity.ok()
                     .headers(headers)
@@ -44,6 +50,13 @@ public class DownloadController {
         } catch (DownloadException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
+            
+            if (e.getMessage().contains("Password")) {
+                return ResponseEntity.status(401).body(error);
+            } else if (e.getMessage().contains("found") || e.getMessage().contains("Expired") || e.getMessage().contains("limit")) {
+                return ResponseEntity.status(404).body(error);
+            }
+            
             return ResponseEntity.badRequest().body(error);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();

@@ -31,6 +31,7 @@ public class ShortLinkService {
     private final UserRepository userRepository;
     private final ShortCodeGenerator shortCodeGenerator;
     private final RedisCacheService redisCacheService;
+    private final com.smartshare.repository.analytics.DownloadAnalyticsRepository downloadAnalyticsRepository;
 
     @Value("${spring.application.name:smartshare}")
     private String appName;
@@ -93,6 +94,31 @@ public class ShortLinkService {
         } catch (Exception e) {
             logger.error("Failed to create short link", e);
             throw new ShortLinkCreationException("Failed to generate short link: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public void deleteShortLink(String shortCode, String firebaseUid) {
+        try {
+            ShortLinkEntity shortLink = shortLinkRepository.findByShortCode(shortCode)
+                    .orElseThrow(() -> new RuntimeException("Short link not found"));
+
+            if (!shortLink.getFile().getOwner().getFirebaseUid().equals(firebaseUid)) {
+                throw new RuntimeException("Unauthorized access to short link");
+            }
+
+            // 1. Delete from Redis Cache
+            redisCacheService.deleteStoragePath(shortCode);
+
+            // 2. Delete Download Analytics associated with this link
+            downloadAnalyticsRepository.deleteByShortCode(shortCode);
+
+            // 3. Delete the short link itself
+            shortLinkRepository.delete(shortLink);
+            
+            logger.info("Short link {} and its analytics deleted by owner {}", shortCode, firebaseUid);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete short link: " + e.getMessage(), e);
         }
     }
 }

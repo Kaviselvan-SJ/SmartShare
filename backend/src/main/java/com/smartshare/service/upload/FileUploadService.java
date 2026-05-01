@@ -33,6 +33,7 @@ public class FileUploadService {
     private final DeduplicationService deduplicationService;
     private final CompressionService compressionService;
     private final StorageService storageService;
+    private final com.smartshare.service.tagging.TaggingService taggingService;
 
     @Transactional
     public UploadResponseDTO uploadFile(MultipartFile file) {
@@ -97,6 +98,9 @@ public class FileUploadService {
 
             newFileEntity = fileRepository.save(newFileEntity);
 
+            // Step 6.5: Generate Tags
+            taggingService.generateTags(newFileEntity.getFileName(), newFileEntity.getFileHash());
+
             // Step 7: Return upload response
             return buildResponse(newFileEntity, false, "File uploaded successfully");
 
@@ -136,5 +140,19 @@ public class FileUploadService {
             return (size / 1024) + "KB";
         }
         return size + "B";
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<UploadResponseDTO> getMyFiles() {
+        AuthenticatedUser authenticatedUser = (AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        java.util.Optional<UserEntity> userOpt = userRepository.findByFirebaseUid(authenticatedUser.getUid());
+        
+        if (userOpt.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        return fileRepository.findByOwnerOrderByCreatedAtDesc(userOpt.get()).stream()
+                .map(fileEntity -> buildResponse(fileEntity, false, "Success"))
+                .collect(java.util.stream.Collectors.toList());
     }
 }

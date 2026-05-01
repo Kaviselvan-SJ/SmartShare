@@ -29,7 +29,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configure(http))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/public/**", "/health", "/f/**").permitAll()
+                .requestMatchers("/api/public/**", "/health", "/f/**", "/api/analytics/bandwidth/system", "/api/analytics/bandwidth/file/**", "/api/tags/popular", "/api/analytics/dashboard/popular-tags", "/error").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(firebaseTokenFilter, UsernamePasswordAuthenticationFilter.class);
@@ -42,7 +42,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Content-Disposition"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

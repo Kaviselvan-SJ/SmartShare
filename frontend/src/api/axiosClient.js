@@ -12,7 +12,7 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(async (config) => {
   if (auth.currentUser) {
     try {
-      const token = await getIdToken(auth.currentUser, true);
+      const token = await getIdToken(auth.currentUser, false);
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -24,5 +24,22 @@ axiosClient.interceptors.request.use(async (config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
+axiosClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      import('react-hot-toast').then(({ toast }) => {
+        toast.error('Session expired. Please log in again.');
+      });
+      window.location.href = '/login';
+    } else if (error.response && error.response.data && error.response.data.error) {
+      import('react-hot-toast').then(({ toast }) => {
+        toast.error(error.response.data.error);
+      });
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default axiosClient;
