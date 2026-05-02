@@ -84,7 +84,7 @@ docker-compose up -d
 Services started:
 | Service | Port(s) |
 |---|---|
-| PostgreSQL | 5432 |
+| PostgreSQL | 5433 |
 | Redis | 6379 |
 | MinIO (API) | 9000 |
 | MinIO (Console) | 9001 |
