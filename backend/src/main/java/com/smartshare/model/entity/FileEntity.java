@@ -35,6 +35,9 @@ public class FileEntity extends BaseEntity {
     @Column(nullable = false)
     private String storagePath;
 
+    @Column(name = "mime_type")
+    private String mimeType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private UserEntity owner;

@@ -72,6 +72,19 @@ public class FileUploadService {
                 compressionResult = compressionService.compressFile(is, file.getOriginalFilename());
             }
 
+            // Detect MIME type
+            String mimeType = file.getContentType();
+            if (mimeType == null || mimeType.isBlank()) {
+                try {
+                    mimeType = java.nio.file.Files.probeContentType(java.nio.file.Paths.get(file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown"));
+                } catch (Exception e) {
+                    logger.warn("Could not probe content type for file: {}", file.getOriginalFilename());
+                }
+            }
+            if (mimeType == null || mimeType.isBlank()) {
+                mimeType = "application/octet-stream";
+            }
+
             // Step 5: Store compressed file in MinIO using the fileHash as object name
             String storagePath = dedupResult.getFileHash();
             try (InputStream compressedStream = compressionResult.getCompressedStream()) {
@@ -79,7 +92,7 @@ public class FileUploadService {
                         storagePath,
                         compressedStream,
                         compressionResult.getCompressedSize(),
-                        file.getContentType() != null ? file.getContentType() : "application/octet-stream"
+                        mimeType
                 );
             }
 
@@ -93,6 +106,7 @@ public class FileUploadService {
                     .originalSize(compressionResult.getOriginalSize())
                     .compressedSize(compressionResult.getCompressedSize())
                     .storagePath(storagePath)
+                    .mimeType(mimeType)
                     .owner(user)
                     .build();
 

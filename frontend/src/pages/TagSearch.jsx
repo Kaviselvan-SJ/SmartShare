@@ -16,6 +16,8 @@ export default function TagSearch() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedFileForLink, setSelectedFileForLink] = useState(null);
+  const [fileToDelete, setFileToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (initialQuery) {
@@ -49,6 +51,46 @@ export default function TagSearch() {
     e.preventDefault();
     if (query.trim()) {
       setSearchParams({ tags: query });
+    }
+  };
+
+  const handleDownload = async (file) => {
+    try {
+      const toastId = toast.loading('Downloading file...');
+      const response = await axiosClient.get(`/files/${file.fileId}/preview`, {
+        responseType: 'blob'
+      });
+      
+      const url = URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.fileName || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success('Download complete!', { id: toastId });
+    } catch (error) {
+      toast.dismiss();
+      if (!error.handled) toast.error('Failed to download file');
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!fileToDelete) return;
+    
+    try {
+      setDeleting(true);
+      const response = await axiosClient.delete(`/files/${fileToDelete.fileId}`);
+      toast.success(response.data.message || 'File successfully deleted');
+      setFileToDelete(null);
+      // Remove deleted file from results
+      setResults(prev => prev.filter(f => f.fileId !== fileToDelete.fileId));
+    } catch (error) {
+      if (!error.handled) toast.error(error.response?.data?.error || 'Failed to delete file');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -100,7 +142,9 @@ export default function TagSearch() {
               <FileCard 
                 key={file.fileId} 
                 file={file} 
+                onDownload={handleDownload}
                 onShare={(f) => setSelectedFileForLink(f)}
+                onDelete={(f) => setFileToDelete(f)}
               />
             ))}
           </div>
@@ -113,6 +157,34 @@ export default function TagSearch() {
           fileName={selectedFileForLink.fileName}
           onClose={() => setSelectedFileForLink(null)}
         />
+      )}
+
+      {fileToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete File</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete <span className="font-semibold">{fileToDelete.fileName}</span>? 
+              This action cannot be undone. All associated short links and analytics will be permanently removed.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button 
+                onClick={() => setFileToDelete(null)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium flex items-center"
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting...' : 'Delete Permanently'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

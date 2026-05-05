@@ -27,8 +27,27 @@ export default function MyFiles() {
     }
   };
 
-  const handleDownload = (file) => {
-    toast.error('Direct download coming in Phase 3. Please generate a short link to share/download.');
+  const handleDownload = async (file) => {
+    try {
+      const toastId = toast.loading('Downloading file...');
+      const response = await axiosClient.get(`/files/${file.fileId}/preview`, {
+        responseType: 'blob'
+      });
+      
+      const url = URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.fileName || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success('Download complete!', { id: toastId });
+    } catch (error) {
+      toast.dismiss();
+      if (!error.handled) toast.error('Failed to download file');
+    }
   };
 
   const handleDeleteConfirm = async () => {

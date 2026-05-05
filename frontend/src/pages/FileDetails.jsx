@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import Loader from '../components/ui/Loader';
 import TagBadge from '../components/ui/TagBadge';
+import ShortLinkModal from '../components/ShortLinkModal';
 import { toast } from 'react-hot-toast';
 import { FileText, ArrowLeft, Download, Eye, EyeOff, Activity, Link as LinkIcon, HardDrive, Clock, Search, Trash2, Copy } from 'lucide-react';
 
@@ -14,7 +15,10 @@ export default function FileDetails() {
   const [showPasswords, setShowPasswords] = useState({});
   const [linkToDelete, setLinkToDelete] = useState(null);
   const [deletingLink, setDeletingLink] = useState(false);
-
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showDeleteFileModal, setShowDeleteFileModal] = useState(false);
+  const [deletingFile, setDeletingFile] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
   useEffect(() => {
     fetchFileDetails();
   }, [fileId]);
@@ -56,6 +60,72 @@ export default function FileDetails() {
     setShowPasswords(prev => ({ ...prev, [shortCode]: !prev[shortCode] }));
   };
 
+  const handleDownloadFile = async () => {
+    try {
+      const toastId = toast.loading('Downloading file...');
+      const response = await axiosClient.get(`/files/${fileId}/preview`, {
+        responseType: 'blob'
+      });
+      
+      const url = URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = details?.fileName || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success('Download complete!', { id: toastId });
+    } catch (error) {
+      toast.dismiss();
+      if (!error.handled) toast.error('Failed to download file');
+    }
+  };
+
+  const handlePreviewFile = async () => {
+    try {
+      const toastId = toast.loading('Loading preview...');
+      const response = await axiosClient.get(`/files/${fileId}/preview`, {
+        responseType: 'blob'
+      });
+      
+      const contentType = response.headers['content-type'];
+      const blob = new Blob([response.data], { type: contentType });
+      const url = URL.createObjectURL(blob);
+      
+      toast.dismiss(toastId);
+      
+      // Always open the modal, let the modal decide how to render the file type
+      setPreviewData({ url, type: contentType, name: details?.fileName });
+      
+    } catch (error) {
+      toast.dismiss();
+      if (!error.handled) toast.error('Failed to load preview or unsupported file type');
+    }
+  };
+
+  const closePreview = () => {
+    if (previewData?.url) {
+      URL.revokeObjectURL(previewData.url);
+    }
+    setPreviewData(null);
+  };
+
+  const handleDeleteFile = async () => {
+    try {
+      setDeletingFile(true);
+      const response = await axiosClient.delete(`/files/${fileId}`);
+      toast.success(response.data.message || 'File successfully deleted');
+      navigate('/files');
+    } catch (error) {
+      if (!error.handled) toast.error(error.response?.data?.error || 'Failed to delete file');
+    } finally {
+      setDeletingFile(false);
+      setShowDeleteFileModal(false);
+    }
+  };
+
   const formatSize = (bytes) => {
     if (!bytes) return '0 B';
     if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
@@ -73,15 +143,47 @@ export default function FileDetails() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center space-x-4">
-        <button onClick={() => navigate('/files')} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-          <ArrowLeft size={20} />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <FileText className="text-indigo-500" /> {details.fileName}
-          </h1>
-          <p className="text-slate-500 font-mono text-sm mt-1">{details.fileHash}</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center space-x-4">
+          <button onClick={() => navigate('/files')} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+              <FileText className="text-indigo-500" /> {details.fileName}
+            </h1>
+            <p className="text-slate-500 font-mono text-sm mt-1">{details.fileHash}</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handlePreviewFile}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors font-medium text-sm border border-purple-200"
+            title="Preview File"
+          >
+            <Eye size={16} /> Preview
+          </button>
+          <button
+            onClick={handleDownloadFile}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors font-medium text-sm border border-blue-200"
+            title="Download File"
+          >
+            <Download size={16} /> Download
+          </button>
+          <button
+            onClick={() => setShowShareModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors font-medium text-sm border border-emerald-200"
+            title="Create Shareable Link"
+          >
+            <LinkIcon size={16} /> Create Link
+          </button>
+          <button
+            onClick={() => setShowDeleteFileModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors font-medium text-sm border border-red-200"
+            title="Delete File"
+          >
+            <Trash2 size={16} /> Delete
+          </button>
         </div>
       </div>
 
@@ -283,6 +385,94 @@ export default function FileDetails() {
                 {deletingLink ? 'Deleting...' : 'Delete Link'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteFileModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete File</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete <span className="font-semibold">{details.fileName}</span>?
+              This action cannot be undone. All associated short links and analytics will be permanently removed.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button 
+                onClick={() => setShowDeleteFileModal(false)}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                disabled={deletingFile}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteFile}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium flex items-center"
+                disabled={deletingFile}
+              >
+                {deletingFile ? 'Deleting...' : 'Delete Permanently'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showShareModal && (
+        <ShortLinkModal 
+          fileId={fileId}
+          fileName={details.fileName}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {/* File Preview Modal */}
+      {previewData && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex flex-col z-50 animate-in fade-in duration-200">
+          <div className="flex justify-between items-center p-4 bg-black/50 text-white">
+            <h3 className="font-medium text-lg truncate flex items-center gap-2">
+              <Eye size={20} className="text-purple-400" />
+              {previewData.name}
+            </h3>
+            <button 
+              onClick={closePreview}
+              className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-300 hover:text-white"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          <div className="flex-1 w-full h-full p-4 flex justify-center items-center overflow-hidden">
+            {previewData.type.startsWith('image/') ? (
+              <img 
+                src={previewData.url} 
+                alt={previewData.name}
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              />
+            ) : previewData.type === 'application/octet-stream' ? (
+              <div className="bg-white rounded-xl p-8 flex flex-col items-center max-w-md w-full shadow-2xl">
+                <FileText size={48} className="text-gray-400 mb-4" />
+                <h4 className="text-lg font-semibold text-gray-800 mb-2">No preview available</h4>
+                <p className="text-gray-500 text-center mb-6">This file type cannot be previewed in the browser. Please download it to view the contents.</p>
+                <button 
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = previewData.url;
+                    link.download = previewData.name || 'download';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <Download size={18} /> Download File
+                </button>
+              </div>
+            ) : (
+              <iframe 
+                src={previewData.url} 
+                title={previewData.name}
+                className="w-full max-w-5xl h-full bg-white rounded-lg shadow-2xl border-0"
+              />
+            )}
           </div>
         </div>
       )}

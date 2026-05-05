@@ -2,7 +2,6 @@ package com.smartshare.repository;
 
 import com.smartshare.model.entity.FileEntity;
 import com.smartshare.model.entity.UserEntity;
-import com.smartshare.model.entity.UserEntity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +14,9 @@ import java.util.UUID;
 @Repository
 public interface FileRepository extends JpaRepository<FileEntity, UUID> {
     Optional<FileEntity> findByFileHash(String fileHash);
+
     List<FileEntity> findByOwnerOrderByCreatedAtDesc(UserEntity owner);
+
     long countByOwner_FirebaseUid(String firebaseUid);
 
     @Query("SELECT f.owner, COUNT(f) FROM FileEntity f GROUP BY f.owner ORDER BY COUNT(f) DESC")
