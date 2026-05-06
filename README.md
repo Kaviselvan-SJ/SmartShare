@@ -70,7 +70,8 @@ SmartShare is a full-stack platform that lets users securely upload, compress, d
 
 ---
 
-## 🚀 Getting Started
+
+## Getting Started
 
 ### 1. Infrastructure
 
@@ -229,3 +230,5 @@ Admin users are automatically redirected to `/admin` on login and cannot access 
 - Admin access is enforced both frontend (route guards) and backend (email whitelist check).
 - Short link passwords are transmitted via `X-Download-Password` header — never in the URL.
 - URL fields (LinkedIn, GitHub, Portfolio) are validated server-side for correct prefixes.
+
+### Future Scope
