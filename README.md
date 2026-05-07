@@ -231,4 +231,3 @@ Admin users are automatically redirected to `/admin` on login and cannot access 
 - Short link passwords are transmitted via `X-Download-Password` header — never in the URL.
 - URL fields (LinkedIn, GitHub, Portfolio) are validated server-side for correct prefixes.
 
-### Future Scope
