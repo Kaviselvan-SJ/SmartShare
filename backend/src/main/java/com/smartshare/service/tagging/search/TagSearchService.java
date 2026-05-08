@@ -110,6 +110,51 @@ public class TagSearchService {
     }
 
     @Transactional(readOnly = true)
+    public List<TaggedFileDTO> searchByKeyword(String keyword, String firebaseUid) {
+        try {
+            if (keyword == null || keyword.trim().isEmpty()) {
+                throw new TagSearchException("Search keyword cannot be empty");
+            }
+
+            UserEntity user = userRepository.findByFirebaseUid(firebaseUid)
+                    .orElseThrow(() -> new TagSearchException("User not found"));
+
+            String trimmed = keyword.trim();
+
+            // 1. File-name matches
+            List<FileEntity> nameMatches = fileRepository
+                    .findByOwnerAndIsCurrentVersionTrueAndFileNameContainingIgnoreCaseOrderByCreatedAtDesc(user, trimmed);
+
+            // 2. Tag matches – collect hashes from matching tags, then load files
+            List<TagEntity> tagEntities = tagRepository.findByTag(trimmed.toLowerCase());
+            Set<String> tagHashes = tagEntities.stream()
+                    .map(TagEntity::getFileHash)
+                    .collect(Collectors.toSet());
+
+            List<FileEntity> tagMatches = fileRepository
+                    .findByOwnerAndIsCurrentVersionTrueOrderByCreatedAtDesc(user)
+                    .stream()
+                    .filter(f -> tagHashes.contains(f.getFileHash()))
+                    .collect(Collectors.toList());
+
+            // 3. Merge & deduplicate by file id
+            Map<UUID, FileEntity> merged = new LinkedHashMap<>();
+            nameMatches.forEach(f -> merged.put(f.getId(), f));
+            tagMatches.forEach(f -> merged.putIfAbsent(f.getId(), f));
+
+            logger.info("Unified search for '{}': {} name-matches, {} tag-matches, {} total",
+                    trimmed, nameMatches.size(), tagMatches.size(), merged.size());
+
+            return mapToFileDTOs(new ArrayList<>(merged.values()));
+        } catch (TagSearchException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to execute unified search", e);
+            throw new TagSearchException("Database query failure", e);
+        }
+    }
+
+    @Transactional(readOnly = true)
     public List<TagSummaryDTO> getUserTags(String firebaseUid) {
         try {
             UserEntity user = userRepository.findByFirebaseUid(firebaseUid)

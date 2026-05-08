@@ -24,11 +24,12 @@ export default function Navbar() {
         <Search size={18} className="text-gray-400" />
         <input 
           type="text" 
-          placeholder="Search by tags..." 
+          placeholder="Search files by name or tag..." 
           className="bg-transparent border-none outline-none ml-3 w-full text-sm text-gray-700"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && e.target.value) {
-              navigate(`/search?tags=${e.target.value}`);
+              navigate(`/search?q=${encodeURIComponent(e.target.value)}`);
+              e.target.value = '';
             }
           }}
         />

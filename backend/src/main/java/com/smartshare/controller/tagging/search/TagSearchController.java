@@ -70,6 +70,22 @@ public class TagSearchController {
         }
     }
 
+    @GetMapping("/search/unified")
+    public ResponseEntity<?> unifiedSearch(@RequestParam("q") String query) {
+        try {
+            if (query == null || query.trim().isEmpty()) {
+                throw new TagSearchException("Search query is required");
+            }
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            List<TaggedFileDTO> results = tagSearchService.searchByKeyword(query, authenticatedUser.getUid());
+            return ResponseEntity.ok(results);
+        } catch (TagSearchException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "An unexpected error occurred"));
+        }
+    }
+
     @GetMapping("/popular")
     public ResponseEntity<?> getPopularTags() {
         try {

@@ -21,6 +21,8 @@ public interface FileRepository extends JpaRepository<FileEntity, UUID> {
     
     List<FileEntity> findByOwnerAndIsCurrentVersionTrueOrderByCreatedAtDesc(UserEntity owner);
 
+    List<FileEntity> findByOwnerAndIsCurrentVersionTrueAndFileNameContainingIgnoreCaseOrderByCreatedAtDesc(UserEntity owner, String keyword);
+
     long countByOwner_FirebaseUid(String firebaseUid);
 
     @Query("SELECT f.owner, COUNT(f) FROM FileEntity f GROUP BY f.owner ORDER BY COUNT(f) DESC")
