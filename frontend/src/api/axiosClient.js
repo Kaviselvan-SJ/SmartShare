@@ -34,6 +34,9 @@ axiosClient.interceptors.response.use(
       toast.error('Session expired. Please log in again.');
       error.handled = true;
       window.location.href = '/login';
+    } else if (error.response && error.response.status === 429) {
+      toast.error('Too many requests. Please try again later.');
+      error.handled = true;
     } else if (error.response && error.response.data && error.response.data.error) {
       // Show the server-provided error message once from the interceptor.
       // Individual pages must check error.handled before showing their own toast.

@@ -3,6 +3,7 @@ package com.smartshare.controller.download;
 import com.smartshare.exception.download.DownloadException;
 import com.smartshare.model.entity.FileEntity;
 import com.smartshare.service.download.DownloadService;
+import com.smartshare.service.ratelimit.RateLimitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,7 @@ import java.util.Map;
 public class DownloadController {
 
     private final DownloadService downloadService;
+    private final RateLimitService rateLimitService;
 
     @GetMapping("/{shortCode}")
     public ResponseEntity<?> downloadFile(
@@ -35,8 +37,18 @@ public class DownloadController {
             String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
             String ipAddress = request.getRemoteAddr();
 
+            // If IP is already blocked for password brute-force, reject before processing
+            if (password != null && !password.isEmpty()) {
+                rateLimitService.checkPasswordAttempts(ipAddress);
+            }
+
             // Process the download pipeline
             InputStream fileStream = downloadService.processDownload(shortCode, password, userAgent, ipAddress);
+            
+            // If password was provided and we reached here, it means the password was correct. Clear any failed attempts.
+            if (password != null && !password.isEmpty()) {
+                rateLimitService.clearPasswordAttempts(ipAddress);
+            }
             
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + metadata.getFileName() + "\"");
@@ -52,6 +64,7 @@ public class DownloadController {
             error.put("error", e.getMessage());
             
             if (e.getMessage().contains("Password")) {
+                rateLimitService.recordFailedPasswordAttempt(request.getRemoteAddr());
                 return ResponseEntity.status(401).body(error);
             } else if (e.getMessage().contains("found") || e.getMessage().contains("Expired") || e.getMessage().contains("limit")) {
                 return ResponseEntity.status(404).body(error);
