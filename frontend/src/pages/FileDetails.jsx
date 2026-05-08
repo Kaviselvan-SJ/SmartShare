@@ -552,56 +552,72 @@ export default function FileDetails() {
       )}
 
       {/* File Preview Modal */}
-      {previewData && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex flex-col z-50 animate-in fade-in duration-200">
-          <div className="flex justify-between items-center p-4 bg-black/50 text-white">
-            <h3 className="font-medium text-lg truncate flex items-center gap-2">
-              <Eye size={20} className="text-purple-400" />
-              {previewData.name}
-            </h3>
-            <button 
-              onClick={closePreview}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-300 hover:text-white"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
+      {previewData && (() => {
+        // Detect image by MIME type OR by file extension (backend may serve images as octet-stream)
+        const ext = (previewData.name || '').split('.').pop().toLowerCase();
+        const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'ico', 'tiff', 'avif'];
+        const isImage = previewData.type.startsWith('image/') || imageExts.includes(ext);
+        // Detect PDF
+        const isPdf = previewData.type === 'application/pdf' || ext === 'pdf';
+        // Detect text-based types that iframe can render
+        const isInlineable = isPdf || previewData.type.startsWith('text/') || previewData.type.startsWith('video/') || previewData.type.startsWith('audio/');
+
+        return (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex flex-col z-50 animate-in fade-in duration-200">
+            {/* Header bar */}
+            <div className="flex-shrink-0 flex justify-between items-center px-5 py-3 bg-black/60 text-white border-b border-white/10">
+              <h3 className="font-medium text-base truncate flex items-center gap-2">
+                <Eye size={18} className="text-purple-400 flex-shrink-0" />
+                {previewData.name}
+              </h3>
+              <button
+                onClick={closePreview}
+                className="ml-4 p-1.5 hover:bg-white/10 rounded-full transition-colors text-gray-300 hover:text-white flex-shrink-0"
+                title="Close preview"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            {/* Preview content — flush below header, no gap */}
+            <div className="flex-1 min-h-0 flex justify-center items-center overflow-hidden">
+              {isImage ? (
+                <img
+                  src={previewData.url}
+                  alt={previewData.name}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : isInlineable ? (
+                <iframe
+                  src={previewData.url}
+                  title={previewData.name}
+                  className="w-full h-full border-0"
+                  style={{ display: 'block' }}
+                />
+              ) : (
+                <div className="bg-white rounded-xl p-8 flex flex-col items-center max-w-md w-full shadow-2xl mx-4">
+                  <FileText size={48} className="text-gray-400 mb-4" />
+                  <h4 className="text-lg font-semibold text-gray-800 mb-2">No preview available</h4>
+                  <p className="text-gray-500 text-center mb-6">This file type cannot be previewed in the browser. Please download it to view the contents.</p>
+                  <button
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = previewData.url;
+                      link.download = previewData.name || 'download';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  >
+                    <Download size={18} /> Download File
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex-1 w-full h-full p-4 flex justify-center items-center overflow-hidden">
-            {previewData.type.startsWith('image/') ? (
-              <img 
-                src={previewData.url} 
-                alt={previewData.name}
-                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-              />
-            ) : previewData.type === 'application/octet-stream' ? (
-              <div className="bg-white rounded-xl p-8 flex flex-col items-center max-w-md w-full shadow-2xl">
-                <FileText size={48} className="text-gray-400 mb-4" />
-                <h4 className="text-lg font-semibold text-gray-800 mb-2">No preview available</h4>
-                <p className="text-gray-500 text-center mb-6">This file type cannot be previewed in the browser. Please download it to view the contents.</p>
-                <button 
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = previewData.url;
-                    link.download = previewData.name || 'download';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                  className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                >
-                  <Download size={18} /> Download File
-                </button>
-              </div>
-            ) : (
-              <iframe 
-                src={previewData.url} 
-                title={previewData.name}
-                className="w-full max-w-5xl h-full bg-white rounded-lg shadow-2xl border-0"
-              />
-            )}
-          </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
