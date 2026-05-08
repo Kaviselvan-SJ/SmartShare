@@ -23,7 +23,7 @@ public class DeduplicationService {
         String fileHash = HashUtil.generateSha256(stream);
         logger.info("hash generated: {}", fileHash);
 
-        Optional<FileEntity> existingFile = fileRepository.findByFileHash(fileHash);
+        Optional<FileEntity> existingFile = fileRepository.findFirstByFileHash(fileHash);
 
         if (existingFile.isPresent()) {
             logger.info("duplicate found: true");
@@ -43,6 +43,6 @@ public class DeduplicationService {
     }
 
     public boolean fileExists(String hash) {
-        return fileRepository.findByFileHash(hash).isPresent();
+        return fileRepository.findFirstByFileHash(hash).isPresent();
     }
 }

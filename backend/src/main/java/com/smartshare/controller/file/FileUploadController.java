@@ -22,8 +22,10 @@ public class FileUploadController {
     private final FileDetailsService fileDetailsService;
 
     @PostMapping("/upload")
-    public ResponseEntity<UploadResponseDTO> uploadFile(@RequestParam("file") MultipartFile file) {
-        UploadResponseDTO response = fileUploadService.uploadFile(file);
+    public ResponseEntity<UploadResponseDTO> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "independent", defaultValue = "false") boolean independent) {
+        UploadResponseDTO response = fileUploadService.uploadFile(file, independent);
         return ResponseEntity.ok(response);
     }
 

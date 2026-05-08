@@ -60,7 +60,12 @@ export default function FileCard({ file, onDownload, onShare, onDelete }) {
       </div>
       
       <div className="flex-1">
-        <h3 className="font-semibold text-gray-800 text-sm mb-1 truncate" title={file.fileName}>{file.fileName}</h3>
+        <h3 className="font-semibold text-gray-800 text-sm mb-1 flex items-center gap-2 truncate" title={file.fileName}>
+          <span className="truncate">{file.fileName}</span>
+          {file.versionNumber && (
+            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-bold shrink-0">v{file.versionNumber}</span>
+          )}
+        </h3>
         <p className="text-xs text-gray-400 mb-3 font-mono truncate" title={file.fileHash}>
           {file.fileHash ? file.fileHash.substring(0, 16) + '...' : 'Unknown hash'}
         </p>

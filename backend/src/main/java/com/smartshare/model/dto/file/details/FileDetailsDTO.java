@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class FileDetailsDTO {
     private UUID fileId;
+    private UUID fileGroupId;
     private String fileName;
     private String fileHash;
     private long originalSize;

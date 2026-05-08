@@ -80,6 +80,7 @@ public class FileDetailsService {
 
         return FileDetailsDTO.builder()
                 .fileId(file.getId())
+                .fileGroupId(file.getFileGroup() != null ? file.getFileGroup().getId() : null)
                 .fileName(file.getFileName())
                 .fileHash(file.getFileHash())
                 .originalSize(file.getOriginalSize())

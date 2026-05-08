@@ -4,6 +4,7 @@ import com.smartshare.exception.upload.FileUploadException;
 import com.smartshare.model.dto.upload.UploadResponseDTO;
 import com.smartshare.model.entity.FileEntity;
 import com.smartshare.model.entity.UserEntity;
+import com.smartshare.repository.FileGroupRepository;
 import com.smartshare.repository.FileRepository;
 import com.smartshare.repository.UserRepository;
 import com.smartshare.security.firebase.AuthenticatedUser;
@@ -30,13 +31,14 @@ public class FileUploadService {
 
     private final UserRepository userRepository;
     private final FileRepository fileRepository;
+    private final FileGroupRepository fileGroupRepository;
     private final DeduplicationService deduplicationService;
     private final CompressionService compressionService;
     private final StorageService storageService;
     private final com.smartshare.service.tagging.TaggingService taggingService;
 
     @Transactional
-    public UploadResponseDTO uploadFile(MultipartFile file) {
+    public UploadResponseDTO uploadFile(MultipartFile file, boolean independent) {
         if (file == null || file.isEmpty()) {
             throw new FileUploadException("Cannot upload empty file");
         }
@@ -57,60 +59,99 @@ public class FileUploadService {
             if (dedupResult.isDuplicateFound()) {
                 logger.info("duplicate: true");
                 
-                // Fetch the existing file metadata reference
-                FileEntity existingFile = fileRepository.findById(dedupResult.getExistingFileId())
-                        .orElseThrow(() -> new FileUploadException("Duplicate detected but metadata not found"));
-                
-                return buildResponse(existingFile, true, "Duplicate detected, linked to existing file");
+                if (!independent) {
+                    // Fetch the existing file metadata reference
+                    FileEntity existingFile = fileRepository.findById(dedupResult.getExistingFileId())
+                            .orElseThrow(() -> new FileUploadException("Duplicate detected but metadata not found"));
+                    
+                    return buildResponse(existingFile, true, "Duplicate detected, linked to existing file");
+                } else {
+                    logger.info("independent flag is true, bypassing existing file return to create a new independent metadata record");
+                }
             }
 
             logger.info("duplicate: false");
 
-            // Step 4: Compress file if new
-            CompressionResult compressionResult;
-            try (InputStream is = file.getInputStream()) {
-                compressionResult = compressionService.compressFile(is, file.getOriginalFilename());
+            long finalOriginalSize;
+            long finalCompressedSize;
+            String storagePath = dedupResult.getFileHash();
+
+            if (!dedupResult.isDuplicateFound()) {
+                // Step 4: Compress file if new
+                CompressionResult compressionResult;
+                try (InputStream is = file.getInputStream()) {
+                    compressionResult = compressionService.compressFile(is, file.getOriginalFilename());
+                }
+
+                // Detect MIME type
+                String mimeType = file.getContentType();
+                if (mimeType == null || mimeType.isBlank()) {
+                    try {
+                        mimeType = java.nio.file.Files.probeContentType(java.nio.file.Paths.get(file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown"));
+                    } catch (Exception e) {
+                        logger.warn("Could not probe content type for file: {}", file.getOriginalFilename());
+                    }
+                }
+                if (mimeType == null || mimeType.isBlank()) {
+                    mimeType = "application/octet-stream";
+                }
+
+                // Step 5: Store compressed file in MinIO using the fileHash as object name
+                try (InputStream compressedStream = compressionResult.getCompressedStream()) {
+                    storageService.uploadFile(
+                            storagePath,
+                            compressedStream,
+                            compressionResult.getCompressedSize(),
+                            mimeType
+                    );
+                }
+
+                finalOriginalSize = compressionResult.getOriginalSize();
+                finalCompressedSize = compressionResult.getCompressedSize();
+                logger.info("compressed from {} to {}", formatSize(finalOriginalSize), formatSize(finalCompressedSize));
+                logger.info("stored successfully in MinIO");
+            } else {
+                // Independent file logic, but physical file already exists in MinIO
+                FileEntity duplicateSource = fileRepository.findById(dedupResult.getExistingFileId())
+                        .orElseThrow(() -> new FileUploadException("Duplicate detected but metadata not found"));
+                finalOriginalSize = duplicateSource.getOriginalSize();
+                finalCompressedSize = duplicateSource.getCompressedSize();
             }
 
-            // Detect MIME type
+            // Detect MIME type again if skipped above
             String mimeType = file.getContentType();
-            if (mimeType == null || mimeType.isBlank()) {
-                try {
-                    mimeType = java.nio.file.Files.probeContentType(java.nio.file.Paths.get(file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown"));
-                } catch (Exception e) {
-                    logger.warn("Could not probe content type for file: {}", file.getOriginalFilename());
-                }
-            }
             if (mimeType == null || mimeType.isBlank()) {
                 mimeType = "application/octet-stream";
             }
 
-            // Step 5: Store compressed file in MinIO using the fileHash as object name
-            String storagePath = dedupResult.getFileHash();
-            try (InputStream compressedStream = compressionResult.getCompressedStream()) {
-                storageService.uploadFile(
-                        storagePath,
-                        compressedStream,
-                        compressionResult.getCompressedSize(),
-                        mimeType
-                );
-            }
-
-            logger.info("compressed from {} to {}", formatSize(compressionResult.getOriginalSize()), formatSize(compressionResult.getCompressedSize()));
-            logger.info("stored successfully in MinIO");
-
             // Step 6: Save metadata in PostgreSQL
+            String originalFileName = file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown";
+            
+            // Create new FileGroup for this upload
+            com.smartshare.model.entity.FileGroupEntity fileGroup = com.smartshare.model.entity.FileGroupEntity.builder()
+                    .owner(user)
+                    .displayFileName(originalFileName)
+                    .build();
+            fileGroup = fileGroupRepository.save(fileGroup);
+
             FileEntity newFileEntity = FileEntity.builder()
-                    .fileName(file.getOriginalFilename() != null ? file.getOriginalFilename() : "unknown")
+                    .fileName(originalFileName)
                     .fileHash(dedupResult.getFileHash())
-                    .originalSize(compressionResult.getOriginalSize())
-                    .compressedSize(compressionResult.getCompressedSize())
+                    .originalSize(finalOriginalSize)
+                    .compressedSize(finalCompressedSize)
                     .storagePath(storagePath)
                     .mimeType(mimeType)
                     .owner(user)
+                    .fileGroup(fileGroup)
+                    .versionNumber(1)
+                    .isCurrentVersion(true)
                     .build();
 
             newFileEntity = fileRepository.save(newFileEntity);
+            
+            // Link group to its current version
+            fileGroup.setCurrentVersionId(newFileEntity.getId());
+            fileGroupRepository.save(fileGroup);
 
             // Step 6.5: Generate Tags
             taggingService.generateTags(newFileEntity.getFileName(), newFileEntity.getFileHash());
@@ -144,6 +185,7 @@ public class FileUploadService {
                 .compressedSize(fileEntity.getCompressedSize())
                 .duplicate(duplicate)
                 .message(message)
+                .versionNumber(fileEntity.getVersionNumber())
                 .build();
     }
     
@@ -161,7 +203,7 @@ public class FileUploadService {
         AuthenticatedUser authenticatedUser = (AuthenticatedUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         
         return userRepository.findByFirebaseUid(authenticatedUser.getUid())
-                .map(user -> fileRepository.findByOwnerOrderByCreatedAtDesc(user).stream()
+                .map(user -> fileRepository.findByOwnerAndIsCurrentVersionTrueOrderByCreatedAtDesc(user).stream()
                         .map(fileEntity -> buildResponse(fileEntity, false, "Success"))
                         .collect(java.util.stream.Collectors.toList()))
                 .orElse(java.util.Collections.emptyList()); // New user: safely return empty list

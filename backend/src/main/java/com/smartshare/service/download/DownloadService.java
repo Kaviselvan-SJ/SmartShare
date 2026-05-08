@@ -24,6 +24,7 @@ public class DownloadService {
 
     private final ShortLinkCacheResolver cacheResolver;
     private final ShortLinkRepository shortLinkRepository;
+    private final com.smartshare.repository.FileRepository fileRepository;
     private final StorageService storageService;
     private final com.smartshare.service.analytics.AnalyticsService analyticsService;
 
@@ -45,7 +46,9 @@ public class DownloadService {
             throw new DownloadException(validation.getMessage());
         }
 
-        FileEntity fileEntity = shortLink.getFile();
+        FileEntity originalFile = shortLink.getFile();
+        FileEntity fileEntity = fileRepository.findById(originalFile.getFileGroup().getCurrentVersionId())
+                .orElse(originalFile);
 
         // Step 7: Download file from MinIO
         InputStream fileStream;
@@ -70,7 +73,11 @@ public class DownloadService {
 
     public FileEntity getFileMetadata(String shortCode) {
         return shortLinkRepository.findByShortCode(shortCode)
-                .map(ShortLinkEntity::getFile)
+                .map(link -> {
+                    FileEntity original = link.getFile();
+                    return fileRepository.findById(original.getFileGroup().getCurrentVersionId())
+                            .orElse(original);
+                })
                 .orElseThrow(() -> new DownloadException("Short link not found"));
     }
 

@@ -1,7 +1,9 @@
 package com.smartshare.service.cache;
 
 import com.smartshare.exception.cache.CacheException;
+import com.smartshare.model.entity.FileEntity;
 import com.smartshare.model.entity.ShortLinkEntity;
+import com.smartshare.repository.FileRepository;
 import com.smartshare.repository.ShortLinkRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -18,6 +20,7 @@ public class ShortLinkCacheResolver {
 
     private final RedisCacheService redisCacheService;
     private final ShortLinkRepository shortLinkRepository;
+    private final FileRepository fileRepository;
 
     public String resolveStoragePath(String shortCode) {
         // Step 1: Check Redis cache
@@ -30,7 +33,11 @@ public class ShortLinkCacheResolver {
         Optional<ShortLinkEntity> entityOpt = shortLinkRepository.findByShortCode(shortCode);
         
         if (entityOpt.isPresent()) {
-            String storagePath = entityOpt.get().getFile().getStoragePath();
+            FileEntity originalFile = entityOpt.get().getFile();
+            FileEntity currentVersion = fileRepository.findById(originalFile.getFileGroup().getCurrentVersionId())
+                    .orElse(originalFile);
+                    
+            String storagePath = currentVersion.getStoragePath();
             
             // Step 3: Store result in Redis
             redisCacheService.cacheStoragePath(shortCode, storagePath);

@@ -44,7 +44,7 @@ public class TagSearchService {
                     .map(TagEntity::getFileHash)
                     .collect(Collectors.toSet());
 
-            List<FileEntity> userFiles = fileRepository.findByOwnerOrderByCreatedAtDesc(user);
+            List<FileEntity> userFiles = fileRepository.findByOwnerAndIsCurrentVersionTrueOrderByCreatedAtDesc(user);
             List<FileEntity> filteredFiles = userFiles.stream()
                     .filter(file -> matchingFileHashes.contains(file.getFileHash()))
                     .collect(Collectors.toList());
@@ -93,7 +93,7 @@ public class TagSearchService {
             }
 
             Set<String> finalHashes = intersectedHashes;
-            List<FileEntity> userFiles = fileRepository.findByOwnerOrderByCreatedAtDesc(user);
+            List<FileEntity> userFiles = fileRepository.findByOwnerAndIsCurrentVersionTrueOrderByCreatedAtDesc(user);
             List<FileEntity> filteredFiles = userFiles.stream()
                     .filter(file -> finalHashes.contains(file.getFileHash()))
                     .collect(Collectors.toList());
@@ -115,7 +115,7 @@ public class TagSearchService {
             UserEntity user = userRepository.findByFirebaseUid(firebaseUid)
                     .orElseThrow(() -> new TagSearchException("User not found"));
 
-            List<String> userFileHashes = fileRepository.findByOwnerOrderByCreatedAtDesc(user).stream()
+            List<String> userFileHashes = fileRepository.findByOwnerAndIsCurrentVersionTrueOrderByCreatedAtDesc(user).stream()
                     .map(FileEntity::getFileHash)
                     .collect(Collectors.toList());
 

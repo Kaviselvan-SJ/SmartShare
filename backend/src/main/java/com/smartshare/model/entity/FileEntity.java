@@ -23,7 +23,7 @@ public class FileEntity extends BaseEntity {
     @Column(nullable = false)
     private String fileName;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String fileHash;
 
     @Column(nullable = false)
@@ -41,6 +41,19 @@ public class FileEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private UserEntity owner;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "file_group_id") // Nullable initially for migration
+    private FileGroupEntity fileGroup;
+
+    @Column(name = "version_number")
+    private Integer versionNumber;
+
+    @Column(name = "is_current_version")
+    private Boolean isCurrentVersion;
+
+    @Column(name = "replaced_at")
+    private java.time.LocalDateTime replacedAt;
 
     @OneToMany(mappedBy = "file", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

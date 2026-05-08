@@ -16,7 +16,15 @@ public class UploadResponseDTO {
     private String fileName;
     private String fileHash;
     private long originalSize;
-    private long compressedSize;
+    private Long compressedSize;
     private boolean duplicate;
     private String message;
+
+    // New Versioning Fields
+    private boolean fileNameExists;
+    private UUID existingFileGroupId;
+    private Integer existingCurrentVersion;
+    private boolean previewAvailable;
+    private String existingFilePreviewUrl;
+    private Integer versionNumber;
 }

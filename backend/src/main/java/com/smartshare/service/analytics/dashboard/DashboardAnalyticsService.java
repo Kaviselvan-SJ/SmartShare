@@ -76,7 +76,7 @@ public class DashboardAnalyticsService {
                 String fileHash = (String) row[0];
                 long count = (Long) row[1];
                 
-                Optional<FileEntity> fileOpt = fileRepository.findByFileHash(fileHash);
+                Optional<FileEntity> fileOpt = fileRepository.findFirstByFileHash(fileHash);
                 
                 return TopFilesDTO.builder()
                         .fileId(fileOpt.map(FileEntity::getId).orElse(null))

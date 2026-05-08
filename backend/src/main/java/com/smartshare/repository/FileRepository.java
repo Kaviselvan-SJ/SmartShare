@@ -13,9 +13,13 @@ import java.util.UUID;
 
 @Repository
 public interface FileRepository extends JpaRepository<FileEntity, UUID> {
-    Optional<FileEntity> findByFileHash(String fileHash);
+    Optional<FileEntity> findFirstByFileHash(String fileHash);
+
+    long countByFileHash(String fileHash);
 
     List<FileEntity> findByOwnerOrderByCreatedAtDesc(UserEntity owner);
+    
+    List<FileEntity> findByOwnerAndIsCurrentVersionTrueOrderByCreatedAtDesc(UserEntity owner);
 
     long countByOwner_FirebaseUid(String firebaseUid);
 

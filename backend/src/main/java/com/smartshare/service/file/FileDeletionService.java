@@ -4,6 +4,7 @@ import com.smartshare.exception.file.FileDeletionException;
 import com.smartshare.model.entity.FileEntity;
 import com.smartshare.model.entity.ShortLinkEntity;
 import com.smartshare.repository.FileRepository;
+import com.smartshare.repository.FileGroupRepository;
 import com.smartshare.repository.ShortLinkRepository;
 import com.smartshare.repository.analytics.DownloadAnalyticsRepository;
 import com.smartshare.repository.tag.TagRepository;
@@ -25,6 +26,7 @@ public class FileDeletionService {
     private static final Logger logger = LoggerFactory.getLogger(FileDeletionService.class);
 
     private final FileRepository fileRepository;
+    private final FileGroupRepository fileGroupRepository;
     private final ShortLinkRepository shortLinkRepository;
     private final TagRepository tagRepository;
     private final DownloadAnalyticsRepository downloadAnalyticsRepository;
@@ -43,27 +45,54 @@ public class FileDeletionService {
 
             String fileHash = fileEntity.getFileHash();
 
-            // 1. Invalidate Redis Cache explicitly for all associated short links
+            // 1. Unlink from FileGroup
+            com.smartshare.model.entity.FileGroupEntity group = fileEntity.getFileGroup();
+            if (group != null) {
+                if (group.getFiles().size() <= 1) {
+                    // This is the last file in the group, delete the group
+                    fileGroupRepository.delete(group);
+                    fileRepository.flush();
+                } else {
+                    group.getFiles().remove(fileEntity);
+                    if (group.getCurrentVersionId() != null && group.getCurrentVersionId().equals(fileId)) {
+                        // We are deleting the active version, switch active version to another file
+                        FileEntity newActive = group.getFiles().stream()
+                                .max((f1, f2) -> f1.getVersionNumber().compareTo(f2.getVersionNumber()))
+                                .orElseThrow(() -> new FileDeletionException("Failed to find fallback version"));
+                        
+                        newActive.setIsCurrentVersion(true);
+                        newActive.setReplacedAt(null);
+                        fileRepository.save(newActive);
+                        
+                        group.setCurrentVersionId(newActive.getId());
+                    }
+                    fileGroupRepository.save(group);
+                }
+            }
+
+            // 2. Invalidate Redis Cache & Delete Short Links
             for (ShortLinkEntity link : fileEntity.getShortLinks()) {
                 redisCacheService.deleteStoragePath(link.getShortCode());
             }
-
-            // 2. Delete ShortLinkEntity records explicitly
             shortLinkRepository.deleteByFile_Id(fileId);
 
-            // 3. Delete TagEntity records
-            tagRepository.deleteByFileHash(fileHash);
+            // 3. Check if we should delete physical file and metadata (Deduplication Check)
+            boolean isLastHashInstance = fileRepository.countByFileHash(fileHash) <= 1;
 
-            // 4. Delete DownloadAnalyticsEntity records
-            downloadAnalyticsRepository.deleteByFileHash(fileHash);
-
-            // 5. Delete MinIO object (using fileHash as requested)
-            if (minioStorageService.objectExists(fileHash)) {
-                minioStorageService.deleteFile(fileHash);
-            }
-
-            // 6. Delete FileEntity
+            // 4. Delete FileEntity
             fileRepository.delete(fileEntity);
+            fileRepository.flush();
+
+            if (isLastHashInstance) {
+                logger.info("Hash {} has no other references. Deleting from MinIO and metadata.", fileHash);
+                tagRepository.deleteByFileHash(fileHash);
+                downloadAnalyticsRepository.deleteByFileHash(fileHash);
+                if (minioStorageService.objectExists(fileHash)) {
+                    minioStorageService.deleteFile(fileHash);
+                }
+            } else {
+                logger.info("Hash {} is still referenced by other files. Keeping MinIO and metadata.", fileHash);
+            }
 
             // 7. Audit Logging
             logger.info("AUDIT LOG: [userId={}, fileId={}, timestamp={}, actionType=DELETE_FILE]", 

@@ -11,6 +11,7 @@ export default function FileDetails() {
   const { fileId } = useParams();
   const navigate = useNavigate();
   const [details, setDetails] = useState(null);
+  const [versions, setVersions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPasswords, setShowPasswords] = useState({});
   const [linkToDelete, setLinkToDelete] = useState(null);
@@ -27,11 +28,23 @@ export default function FileDetails() {
     try {
       const response = await axiosClient.get(`/files/${fileId}/details`);
       setDetails(response.data);
+      if (response.data.fileGroupId) {
+        fetchVersions(response.data.fileGroupId);
+      }
     } catch (error) {
       if (!error.handled) toast.error('Failed to load file details');
       navigate('/files');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchVersions = async (groupId) => {
+    try {
+      const response = await axiosClient.get(`/files/${groupId}/versions`);
+      setVersions(response.data);
+    } catch (error) {
+      console.error('Failed to load version history');
     }
   };
 
@@ -80,6 +93,62 @@ export default function FileDetails() {
     } catch (error) {
       toast.dismiss();
       if (!error.handled) toast.error('Failed to download file');
+    }
+  };
+
+  const handleDownloadVersion = async (versionId, versionNumber) => {
+    try {
+      const toastId = toast.loading(`Downloading v${versionNumber}...`);
+      const response = await axiosClient.get(`/files/${versionId}/preview`, {
+        responseType: 'blob'
+      });
+      const url = URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = details?.fileName || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success('Download complete!', { id: toastId });
+    } catch (error) {
+      toast.dismiss();
+      toast.error('Failed to download version');
+    }
+  };
+
+  const handleSetCurrentVersion = async (versionId) => {
+    if (!details.fileGroupId) return;
+    try {
+      const toastId = toast.loading('Switching active version...');
+      await axiosClient.put(`/files/${details.fileGroupId}/current-version/${versionId}`);
+      toast.success('Version switched successfully!', { id: toastId });
+      fetchVersions(details.fileGroupId);
+    } catch (error) {
+      toast.dismiss();
+      toast.error('Failed to switch version');
+    }
+  };
+
+  const handleDeleteVersion = async (versionId) => {
+    if (!window.confirm("Are you sure you want to delete this version? This cannot be undone.")) return;
+    try {
+      const toastId = toast.loading('Deleting version...');
+      await axiosClient.delete(`/files/${versionId}`);
+      toast.success('Version deleted successfully', { id: toastId });
+      
+      // If we deleted the active version, we should redirect to /files because the active version is gone
+      // OR wait, if the backend promotes another version to active, we should re-fetch details.
+      // We can just try to re-fetch the current fileId. If it 404s, we go to /files.
+      try {
+        await fetchDetails();
+        fetchVersions(details.fileGroupId);
+      } catch (err) {
+        navigate('/files');
+      }
+    } catch (error) {
+      toast.dismiss();
+      toast.error(error.response?.data?.message || 'Failed to delete version');
     }
   };
 
@@ -184,6 +253,15 @@ export default function FileDetails() {
           >
             <Trash2 size={16} /> Delete
           </button>
+          {details.fileGroupId && (
+            <button
+              onClick={() => navigate('/upload', { state: { replaceGroup: details.fileGroupId, fileName: details.fileName } })}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors font-medium text-sm border border-indigo-200"
+              title="Upload New Version"
+            >
+              <FileText size={16} /> New Version
+            </button>
+          )}
         </div>
       </div>
 
@@ -385,6 +463,54 @@ export default function FileDetails() {
                 {deletingLink ? 'Deleting...' : 'Delete Link'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Version History Section */}
+      {versions.length > 0 && (
+        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <Activity className="text-indigo-500" /> Version History
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-100 text-sm text-gray-500">
+                  <th className="pb-4 font-medium">Version</th>
+                  <th className="pb-4 font-medium">Uploaded At</th>
+                  <th className="pb-4 font-medium">Size</th>
+                  <th className="pb-4 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50 text-sm">
+                {versions.map(v => (
+                  <tr key={v.versionId} className="group hover:bg-slate-50 transition-colors">
+                    <td className="py-4 font-medium text-gray-900 flex items-center gap-2">
+                      v{v.versionNumber}
+                      {v.isCurrentVersion && <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">Active</span>}
+                    </td>
+                    <td className="py-4 text-gray-500">{formatDate(v.uploadedAt)}</td>
+                    <td className="py-4 text-gray-500">{formatSize(v.compressedSize)}</td>
+                    <td className="py-4 text-right">
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => handleDownloadVersion(v.versionId, v.versionNumber)} className="p-2 bg-white hover:bg-blue-50 text-blue-600 border border-gray-200 rounded-lg transition-colors" title="Download">
+                          <Download size={14} />
+                        </button>
+                        {!v.isCurrentVersion && (
+                          <button onClick={() => handleSetCurrentVersion(v.versionId)} className="px-3 py-1 bg-white hover:bg-emerald-50 text-emerald-600 border border-gray-200 rounded-lg transition-colors font-medium text-xs" title="Set as Active">
+                            Set Active
+                          </button>
+                        )}
+                        <button onClick={() => handleDeleteVersion(v.versionId)} className="p-2 bg-white hover:bg-red-50 text-red-600 border border-gray-200 rounded-lg transition-colors" title="Delete Version">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
