@@ -9,8 +9,9 @@ spring:
 
   datasource:
     url: ${DB_URL}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
   data:
     redis:
@@ -23,9 +24,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
     show-sql: false
+
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
 
 server:
@@ -36,6 +40,7 @@ aws:
   access-key: ${AWS_ACCESS_KEY}
   secret-key: ${AWS_SECRET_KEY}
   region: ${AWS_REGION}
+
   s3:
     bucket-name: ${AWS_S3_BUCKET}
 
