@@ -40,20 +40,20 @@ export default function FileCard({ file, onDownload, onShare, onDelete }) {
         <div className="bg-gray-50 p-3 rounded-lg">
           {getFileIcon(file.fileName)}
         </div>
-        <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex space-x-1 sm:space-x-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
           {onDownload && (
-            <button onClick={(e) => { e.stopPropagation(); onDownload(file); }} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Download">
-              <Download size={16} />
+            <button onClick={(e) => { e.stopPropagation(); onDownload(file); }} className="p-2 sm:p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center md:min-h-0 md:min-w-0" title="Download">
+              <Download size={18} className="md:w-4 md:h-4" />
             </button>
           )}
           {onShare && (
-            <button onClick={(e) => { e.stopPropagation(); onShare(file); }} className="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Share">
-              <Link size={16} />
+            <button onClick={(e) => { e.stopPropagation(); onShare(file); }} className="p-2 sm:p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center md:min-h-0 md:min-w-0" title="Share">
+              <Link size={18} className="md:w-4 md:h-4" />
             </button>
           )}
           {onDelete && (
-            <button onClick={(e) => { e.stopPropagation(); onDelete(file); }} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-              <Trash2 size={16} />
+            <button onClick={(e) => { e.stopPropagation(); onDelete(file); }} className="p-2 sm:p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center md:min-h-0 md:min-w-0" title="Delete">
+              <Trash2 size={18} className="md:w-4 md:h-4" />
             </button>
           )}
         </div>

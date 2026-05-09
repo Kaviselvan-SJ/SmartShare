@@ -97,16 +97,16 @@ export default function TagSearch() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Search Files</h1>
-        <p className="text-slate-500 mt-1">
+        <p className="text-sm sm:text-base text-slate-500 mt-1">
           Search by <span className="font-medium text-blue-600">file name</span> or{' '}
           <span className="font-medium text-purple-600">tag</span> — results match either.
         </p>
       </div>
 
       {/* Search bar */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <form onSubmit={handleSubmit} className="flex items-center space-x-4">
-          <div className="flex-1 relative">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          <div className="flex-1 relative w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
@@ -122,14 +122,14 @@ export default function TagSearch() {
             type="submit"
             id="search-submit"
             disabled={loading || !query.trim()}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 min-h-[48px]"
           >
             Search
           </button>
         </form>
 
         {/* Legend */}
-        <div className="flex items-center gap-4 mt-4 ml-1">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-4 sm:ml-1">
           <span className="flex items-center gap-1.5 text-xs text-slate-500">
             <FileText size={13} className="text-blue-500" />
             Matches file name

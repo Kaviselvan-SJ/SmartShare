@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Search, Plus } from 'lucide-react';
+import { Bell, Search, Plus, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import axiosClient from '../../api/axiosClient';
 
-export default function Navbar() {
+export default function Navbar({ onMenuToggle }) {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -19,56 +19,57 @@ export default function Navbar() {
   }, [currentUser]);
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
-      <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 w-96 border border-transparent focus-within:border-blue-500 focus-within:bg-white transition-colors">
-        <Search size={18} className="text-gray-400" />
-        <input 
-          type="text" 
-          placeholder="Search files by name or tag..." 
-          className="bg-transparent border-none outline-none ml-3 w-full text-sm text-gray-700"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && e.target.value) {
-              navigate(`/search?q=${encodeURIComponent(e.target.value)}`);
-              e.target.value = '';
-            }
-          }}
-        />
+    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 shadow-sm">
+      <div className="flex items-center flex-1">
+        <button
+          onClick={onMenuToggle}
+          className="md:hidden mr-3 text-gray-500 hover:text-gray-700 p-2 -ml-2 rounded-lg hover:bg-gray-100"
+        >
+          <Menu size={24} />
+        </button>
+
+        <div className="flex items-center bg-gray-100 rounded-full px-3 sm:px-4 py-2 w-full max-w-md border border-transparent focus-within:border-blue-500 focus-within:bg-white transition-colors">
+          <Search size={18} className="text-gray-400 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search files by name or tag..."
+            className="bg-transparent border-none outline-none ml-3 w-full text-sm text-gray-700"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.target.value) {
+                navigate(`/search?q=${encodeURIComponent(e.target.value)}`);
+                e.target.value = '';
+              }
+            }}
+          />
+        </div>
       </div>
 
-      <div className="flex items-center space-x-6">
-        <button 
+      <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-6 ml-4">
+        <button
           onClick={() => navigate('/upload')}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-sm hover:shadow"
+          className="flex items-center space-x-1 sm:space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-sm hover:shadow h-10 sm:h-auto"
         >
-          <Plus size={16} />
-          <span>Upload</span>
+          <Plus size={16} className="shrink-0" />
+          <span className="hidden sm:inline">Upload</span>
         </button>
 
-        <button className="relative text-gray-500 hover:text-gray-700 transition-colors">
-          <Bell size={20} />
-          <span className="absolute top-0 right-0 -mt-1 -mr-1 flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-          </span>
-        </button>
-
-        <div className="relative border-l pl-6 border-gray-200">
-          <button 
+        <div className="relative border-l pl-2 sm:pl-4 md:pl-6 border-gray-200 h-10 flex items-center">
+          <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center space-x-3 focus:outline-none"
+            className="flex items-center space-x-2 sm:space-x-3 focus:outline-none min-h-[44px]"
           >
-            <div className="flex flex-col text-right">
+            <div className="hidden sm:flex flex-col text-right">
               <span className="text-sm font-semibold text-gray-700">
                 {profile?.displayName || currentUser?.email?.split('@')[0]}
               </span>
               <span className="text-xs text-gray-500">{profile?.jobProfile || 'User'}</span>
             </div>
-            
+
             {(profile?.profileImageUrl || currentUser?.photoURL) ? (
-              <img 
-                src={profile?.profileImageUrl || currentUser?.photoURL} 
-                alt="Avatar" 
-                className="h-9 w-9 rounded-full object-cover shadow-inner border border-gray-200" 
+              <img
+                src={profile?.profileImageUrl || currentUser?.photoURL}
+                alt="Avatar"
+                className="h-9 w-9 rounded-full object-cover shadow-inner border border-gray-200"
               />
             ) : (
               <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-inner">

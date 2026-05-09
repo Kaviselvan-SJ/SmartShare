@@ -88,13 +88,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 sticky top-0 z-10 shadow-sm">
-        <div className="flex items-center space-x-3">
-          <Shield size={24} className="text-red-500" />
-          <span className="text-xl font-bold tracking-wider text-slate-800">SmartShare <span className="text-red-500">Admin</span></span>
+      <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <Shield size={24} className="text-red-500 shrink-0" />
+          <span className="text-lg sm:text-xl font-bold tracking-wider text-slate-800 truncate">SmartShare <span className="text-red-500">Admin</span></span>
         </div>
-        <div className="flex items-center space-x-6">
-          <div className="flex items-center space-x-3 border-r pr-6 border-gray-200">
+        <div className="flex items-center space-x-4 sm:space-x-6 ml-2">
+          <div className="hidden sm:flex items-center space-x-3 border-r pr-6 border-gray-200">
             <div className="flex flex-col text-right">
               <span className="text-sm font-semibold text-gray-700">{currentUser?.email?.split('@')[0]}</span>
               <span className="text-xs text-red-500 font-medium">Administrator</span>
@@ -113,23 +113,23 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex items-center justify-between mb-6">
+      <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">Admin Control Center</h1>
             <p className="text-slate-500 mt-1">System observability and privacy-safe analytics.</p>
           </div>
         </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard title="Total Users" value={overview.totalUsers} icon={Users} color="indigo" subtitle={`${overview.activeUsersLast24Hours} active in 24h`} />
         <StatCard title="System Files" value={overview.totalFiles} icon={Database} color="blue" />
         <StatCard title="Total Uploads" value={overview.totalUploads} icon={ArrowUpCircle} color="emerald" />
         <StatCard title="Total Downloads" value={overview.totalDownloads} icon={ArrowDownCircle} color="orange" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="lg:col-span-2 bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <h2 className="text-lg font-semibold text-slate-800 mb-6">7-Day Usage Trends</h2>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">

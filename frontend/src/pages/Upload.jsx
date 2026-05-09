@@ -110,18 +110,18 @@ export default function Upload() {
         <p className="text-slate-500 mt-1">Upload securely. We will compress and deduplicate it automatically.</p>
       </div>
 
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 relative">
+      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 relative">
         <UploadDropzone 
           selectedFile={selectedFile} 
           onFileSelect={(f) => { setSelectedFile(f); setUploadResult(null); setConflictData(null); }}
           onClear={() => { setSelectedFile(null); setUploadResult(null); setConflictData(null); }}
         />
 
-        <div className="mt-8 flex justify-end">
+        <div className="mt-8 flex flex-col sm:flex-row justify-end">
           <button
             onClick={handleUpload}
             disabled={!selectedFile || uploading}
-            className={`px-6 py-2.5 rounded-full font-medium transition-all shadow-sm ${
+            className={`w-full sm:w-auto px-6 py-2.5 rounded-full font-medium transition-all shadow-sm min-h-[44px] ${
               !selectedFile || uploading
                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
@@ -157,12 +157,12 @@ export default function Upload() {
                 What would you like to do?
               </p>
               
-              <div className="flex items-center p-4 bg-slate-50 border border-slate-200 rounded-xl space-x-4">
-                <div className="bg-blue-100 p-3 rounded-lg text-blue-600">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 sm:space-y-0 sm:space-x-4">
+                <div className="bg-blue-100 p-3 rounded-lg text-blue-600 shrink-0">
                   <FileIcon size={24} />
                 </div>
-                <div>
-                  <p className="font-semibold text-slate-800">{selectedFile?.name}</p>
+                <div className="min-w-0 w-full">
+                  <p className="font-semibold text-slate-800 truncate" title={selectedFile?.name}>{selectedFile?.name}</p>
                   <p className="text-sm text-slate-500">Current active version: <strong>v{conflictData.existingCurrentVersion}</strong></p>
                 </div>
               </div>
@@ -170,35 +170,35 @@ export default function Upload() {
               <div className="space-y-3 pt-2">
                 <button
                   onClick={() => handleConflictResolution('replace')}
-                  className="w-full text-left p-4 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors group flex justify-between items-center"
+                  className="w-full text-left p-4 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors group flex justify-between items-center gap-4"
                 >
-                  <div>
-                    <h4 className="font-bold text-blue-900">Replace Existing Version</h4>
-                    <p className="text-sm text-blue-700/80 mt-1">Existing links will download this new file automatically.</p>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-blue-900 truncate">Replace Existing Version</h4>
+                    <p className="text-xs sm:text-sm text-blue-700/80 mt-1">Existing links will download this new file automatically.</p>
                   </div>
-                  <CheckCircle className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <CheckCircle className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                 </button>
 
                 <button
                   onClick={() => handleConflictResolution('new_version')}
-                  className="w-full text-left p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors group flex justify-between items-center"
+                  className="w-full text-left p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors group flex justify-between items-center gap-4"
                 >
-                  <div>
-                    <h4 className="font-bold text-gray-900">Add as New Version</h4>
-                    <p className="text-sm text-gray-500 mt-1">Keep the old version in history and set this as active.</p>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-gray-900 truncate">Add as New Version</h4>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">Keep the old version in history and set this as active.</p>
                   </div>
-                  <CheckCircle className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <CheckCircle className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                 </button>
 
                 <button
                   onClick={() => handleConflictResolution('new_file')}
-                  className="w-full text-left p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors group flex justify-between items-center"
+                  className="w-full text-left p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors group flex justify-between items-center gap-4"
                 >
-                  <div>
-                    <h4 className="font-bold text-gray-900">Store as Independent File</h4>
-                    <p className="text-sm text-gray-500 mt-1">Upload separately. Does not affect existing files.</p>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-gray-900 truncate">Store as Independent File</h4>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1">Upload separately. Does not affect existing files.</p>
                   </div>
-                  <CheckCircle className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <CheckCircle className="text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                 </button>
               </div>
             </div>
@@ -220,8 +220,8 @@ export default function Upload() {
               </h3>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="bg-white/60 p-4 rounded-xl border border-emerald-200/50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <div className="bg-white/60 p-4 rounded-xl border border-emerald-200/50 min-w-0">
                 <p className="text-xs text-emerald-600 font-medium uppercase tracking-wider mb-1">File Hash / Version</p>
                 <p className="text-sm font-mono text-slate-700 truncate" title={uploadResult.fileHash}>
                   {uploadResult.versionNumber ? `v${uploadResult.versionNumber} ` : ''}{uploadResult.fileHash}
@@ -236,7 +236,7 @@ export default function Upload() {
                   </p>
                 </div>
               </div>
-              <div className="col-span-2 bg-white/60 p-4 rounded-xl border border-emerald-200/50">
+              <div className="col-span-1 sm:col-span-2 bg-white/60 p-4 rounded-xl border border-emerald-200/50">
                 <p className="text-xs text-emerald-600 font-medium uppercase tracking-wider mb-1">Compression Details</p>
                 <p className="text-sm text-slate-700">
                   Compressed from <strong>{formatSize(uploadResult.originalSize)}</strong> to <strong>{formatSize(uploadResult.compressedSize)}</strong>

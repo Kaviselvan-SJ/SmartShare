@@ -1,19 +1,20 @@
 import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  UploadCloud, 
-  Files, 
-  Tags, 
-  BarChart3, 
-  Activity, 
+import {
+  LayoutDashboard,
+  UploadCloud,
+  Files,
+  Tags,
+  BarChart3,
+  Activity,
   LogOut,
   HardDrive,
-  Shield
+  Shield,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,14 +46,32 @@ export default function Sidebar() {
   }
 
   return (
-    <div className="w-64 bg-slate-900 text-white min-h-screen flex flex-col shadow-xl">
-      <div className="p-6 flex items-center space-x-3 border-b border-slate-800">
-        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-          <UploadCloud size={20} className="text-white" />
+  <>
+    {/* Mobile overlay backdrop */}
+    {isOpen && (
+      <div
+        className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
+        onClick={onClose}
+      />
+    )}
+
+    {/* Sidebar */}
+    <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white min-h-screen flex flex-col shadow-xl transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className="p-6 flex items-center justify-between border-b border-slate-800">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+            <UploadCloud size={20} className="text-white" />
+          </div>
+          <span className="text-xl font-bold tracking-wider">SmartShare</span>
         </div>
-        <span className="text-xl font-bold tracking-wider">SmartShare</span>
+        <button
+          className="md:hidden text-gray-400 hover:text-white p-1"
+          onClick={onClose}
+        >
+          <X size={20} className="lucide lucide-x" />
+        </button>
       </div>
-      
+
       <div className="flex-1 py-6 flex flex-col space-y-1 px-3">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -61,11 +80,15 @@ export default function Sidebar() {
             <NavLink
               key={item.name}
               to={item.path}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive 
-                  ? 'bg-blue-600 text-white shadow-md' 
+              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                  ? 'bg-blue-600 text-white shadow-md'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-              }`}
+                }`}
+              onClick={() => {
+                if (window.innerWidth < 768) {
+                  onClose();
+                }
+              }}
             >
               <Icon size={18} />
               <span className="font-medium text-sm">{item.name}</span>
@@ -75,7 +98,7 @@ export default function Sidebar() {
       </div>
 
       <div className="p-4 border-t border-slate-800">
-        <button 
+        <button
           onClick={handleLogout}
           className="flex items-center space-x-3 w-full px-4 py-3 text-slate-300 hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-colors"
         >
@@ -84,5 +107,6 @@ export default function Sidebar() {
         </button>
       </div>
     </div>
-  );
+  </>
+);
 }

@@ -33,13 +33,13 @@ export default function UploadDropzone({ onFileSelect, selectedFile, onClear }) 
 
   if (selectedFile) {
     return (
-      <div className="bg-blue-50 border-2 border-blue-200 border-dashed rounded-2xl p-8 text-center transition-all">
+      <div className="bg-blue-50 border-2 border-blue-200 border-dashed rounded-2xl p-6 sm:p-8 text-center transition-all">
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="bg-white p-4 rounded-full shadow-sm">
             <FileIcon size={32} className="text-blue-500" />
           </div>
           <div>
-            <p className="text-lg font-semibold text-slate-800">{selectedFile.name}</p>
+            <p className="text-base sm:text-lg font-semibold text-slate-800 break-words max-w-full px-2">{selectedFile.name}</p>
             <p className="text-sm text-slate-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
           </div>
           <button
@@ -57,7 +57,7 @@ export default function UploadDropzone({ onFileSelect, selectedFile, onClear }) 
 
   return (
     <div
-      className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all ${
+      className={`border-2 border-dashed rounded-2xl p-6 sm:p-12 text-center cursor-pointer transition-all ${
         isDragActive 
           ? 'border-blue-500 bg-blue-50 scale-[1.02]' 
           : 'border-slate-300 bg-slate-50 hover:bg-slate-100'
@@ -79,7 +79,7 @@ export default function UploadDropzone({ onFileSelect, selectedFile, onClear }) 
           <UploadCloud size={40} />
         </div>
         <div>
-          <p className="text-lg font-semibold text-slate-700">
+          <p className="text-base sm:text-lg font-semibold text-slate-700">
             {isDragActive ? "Drop the file here" : "Drag & drop your file here"}
           </p>
           <p className="text-sm text-slate-500 mt-1">or click to browse from your computer</p>

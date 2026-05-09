@@ -54,13 +54,13 @@ export default function Dashboard() {
   if (!overview) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h1 className="text-2xl font-bold text-slate-800">Welcome Back</h1>
-        <p className="text-slate-500 mt-1">Here is what's happening with your SmartShare workspace today.</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Welcome Back</h1>
+        <p className="text-sm sm:text-base text-slate-500 mt-1">Here is what's happening with your SmartShare workspace today.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard 
           title="Total Files" 
           value={overview.totalFiles} 

@@ -213,53 +213,54 @@ export default function FileDetails() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center space-x-4">
-          <button onClick={() => navigate('/files')} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+        <div className="flex items-center space-x-4 w-full md:w-auto">
+          <button onClick={() => navigate('/files')} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
             <ArrowLeft size={20} />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <FileText className="text-indigo-500" /> {details.fileName}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2 truncate">
+              <FileText className="text-indigo-500 shrink-0" /> 
+              <span className="truncate">{details.fileName}</span>
             </h1>
-            <p className="text-slate-500 font-mono text-sm mt-1">{details.fileHash}</p>
+            <p className="text-slate-500 font-mono text-xs sm:text-sm mt-1 truncate">{details.fileHash}</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-stretch gap-2 w-full md:w-auto">
           <button
             onClick={handlePreviewFile}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors font-medium text-sm border border-purple-200"
+            className="flex-1 sm:flex-none justify-center inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors font-medium text-sm border border-purple-200 min-h-[44px] whitespace-nowrap"
             title="Preview File"
           >
-            <Eye size={16} /> Preview
+            <Eye size={16} className="shrink-0" /> Preview
           </button>
           <button
             onClick={handleDownloadFile}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors font-medium text-sm border border-blue-200"
+            className="flex-1 sm:flex-none justify-center inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors font-medium text-sm border border-blue-200 min-h-[44px] whitespace-nowrap"
             title="Download File"
           >
-            <Download size={16} /> Download
+            <Download size={16} className="shrink-0" /> Download
           </button>
           <button
             onClick={() => setShowShareModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors font-medium text-sm border border-emerald-200"
+            className="flex-1 sm:flex-none justify-center inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors font-medium text-sm border border-emerald-200 min-h-[44px] whitespace-nowrap"
             title="Create Shareable Link"
           >
-            <LinkIcon size={16} /> Create Link
+            <LinkIcon size={16} className="shrink-0" /> Create Link
           </button>
           <button
             onClick={() => setShowDeleteFileModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors font-medium text-sm border border-red-200"
+            className="flex-1 sm:flex-none justify-center inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors font-medium text-sm border border-red-200 min-h-[44px] whitespace-nowrap"
             title="Delete File"
           >
-            <Trash2 size={16} /> Delete
+            <Trash2 size={16} className="shrink-0" /> Delete
           </button>
           {details.fileGroupId && (
             <button
               onClick={() => navigate('/upload', { state: { replaceGroup: details.fileGroupId, fileName: details.fileName } })}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors font-medium text-sm border border-indigo-200"
+              className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors font-medium text-sm border border-indigo-200 min-h-[44px] whitespace-nowrap"
               title="Upload New Version"
             >
-              <FileText size={16} /> New Version
+              <FileText size={16} className="shrink-0" /> New Version
             </button>
           )}
         </div>
@@ -383,7 +384,7 @@ export default function FileDetails() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h3 className="font-bold text-gray-800 flex items-center gap-2"><Activity size={18} className="text-gray-500"/> Recent Download Activity</h3>
@@ -493,17 +494,17 @@ export default function FileDetails() {
                     <td className="py-4 text-gray-500">{formatDate(v.uploadedAt)}</td>
                     <td className="py-4 text-gray-500">{formatSize(v.compressedSize)}</td>
                     <td className="py-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleDownloadVersion(v.versionId, v.versionNumber)} className="p-2 bg-white hover:bg-blue-50 text-blue-600 border border-gray-200 rounded-lg transition-colors" title="Download">
-                          <Download size={14} />
+                      <div className="flex justify-end gap-1 sm:gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => handleDownloadVersion(v.versionId, v.versionNumber)} className="p-2 bg-white hover:bg-blue-50 text-blue-600 border border-gray-200 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center md:min-h-0 md:min-w-0" title="Download">
+                          <Download size={16} className="md:w-3.5 md:h-3.5" />
                         </button>
                         {!v.isCurrentVersion && (
-                          <button onClick={() => handleSetCurrentVersion(v.versionId)} className="px-3 py-1 bg-white hover:bg-emerald-50 text-emerald-600 border border-gray-200 rounded-lg transition-colors font-medium text-xs" title="Set as Active">
+                          <button onClick={() => handleSetCurrentVersion(v.versionId)} className="px-3 py-1 bg-white hover:bg-emerald-50 text-emerald-600 border border-gray-200 rounded-lg transition-colors font-medium text-xs min-h-[44px] md:min-h-0" title="Set as Active">
                             Set Active
                           </button>
                         )}
-                        <button onClick={() => handleDeleteVersion(v.versionId)} className="p-2 bg-white hover:bg-red-50 text-red-600 border border-gray-200 rounded-lg transition-colors" title="Delete Version">
-                          <Trash2 size={14} />
+                        <button onClick={() => handleDeleteVersion(v.versionId)} className="p-2 bg-white hover:bg-red-50 text-red-600 border border-gray-200 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center md:min-h-0 md:min-w-0" title="Delete Version">
+                          <Trash2 size={16} className="md:w-3.5 md:h-3.5" />
                         </button>
                       </div>
                     </td>
