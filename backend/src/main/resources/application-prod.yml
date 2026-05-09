@@ -2,9 +2,24 @@ spring:
   config:
     activate:
       on-profile: prod
+
   docker:
     compose:
       enabled: false
+
+  datasource:
+    url: ${DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: ${REDIS_SSL:true}
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -12,6 +27,20 @@ spring:
     properties:
       hibernate:
         format_sql: false
+
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+
+aws:
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+  region: ${AWS_REGION}
+  s3:
+    bucket-name: ${AWS_S3_BUCKET}
+
+cors:
+  allowed-origin: ${FRONTEND_URL}
 
 logging:
   level:
