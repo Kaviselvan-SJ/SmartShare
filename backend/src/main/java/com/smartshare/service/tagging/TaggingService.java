@@ -56,15 +56,24 @@ public class TaggingService {
             // Convert to list to save and return
             List<String> finalTags = new ArrayList<>(generatedTags);
 
-            // Store tags in database
+            // Fetch existing tags to prevent duplicates
+            List<TagEntity> existingTagEntities = tagRepository.findByFileHash(fileHash);
+            Set<String> existingTags = existingTagEntities.stream()
+                    .map(TagEntity::getTag)
+                    .collect(Collectors.toSet());
+
+            // Store tags in database that don't already exist
             List<TagEntity> tagEntities = finalTags.stream()
+                    .filter(tag -> !existingTags.contains(tag))
                     .map(tag -> TagEntity.builder()
                             .fileHash(fileHash)
                             .tag(tag)
                             .build())
                     .collect(Collectors.toList());
 
-            tagRepository.saveAll(tagEntities);
+            if (!tagEntities.isEmpty()) {
+                tagRepository.saveAll(tagEntities);
+            }
 
             logger.info("Generated tags for {}: {}", fileName, String.join(", ", finalTags));
             return finalTags;
