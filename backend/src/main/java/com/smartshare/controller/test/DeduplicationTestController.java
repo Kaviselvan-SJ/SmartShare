@@ -3,6 +3,7 @@ package com.smartshare.controller.test;
 import com.smartshare.service.deduplication.DeduplicationResult;
 import com.smartshare.service.deduplication.DeduplicationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.HashMap;
 import java.util.Map;
 
+@Profile("!prod")
 @RestController
 @RequestMapping("/api/public/test/dedup")
 @RequiredArgsConstructor

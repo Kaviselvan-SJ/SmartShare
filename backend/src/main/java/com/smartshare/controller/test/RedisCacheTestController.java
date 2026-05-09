@@ -2,12 +2,14 @@ package com.smartshare.controller.test;
 
 import com.smartshare.service.cache.RedisCacheService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Profile("!prod")
 @RestController
 @RequestMapping("/api/public/test/cache")
 @RequiredArgsConstructor

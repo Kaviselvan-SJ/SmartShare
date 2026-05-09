@@ -3,6 +3,7 @@ package com.smartshare.controller.test;
 import com.smartshare.model.entity.UserEntity;
 import com.smartshare.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Profile("!prod")
 @RestController
 @RequestMapping("/api/public/test")
 @RequiredArgsConstructor

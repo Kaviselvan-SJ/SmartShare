@@ -1,0 +1,28 @@
+# Build output
+target/
+
+# Environment & secrets
+.env
+.env.*
+firebase-service-account.json
+*.p12
+*.pem
+*.key
+
+# Version control
+.git
+.gitignore
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+run.log
+run-latest.log
+mvn_out.txt
+
+# OS
+.DS_Store

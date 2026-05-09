@@ -2,11 +2,22 @@ spring:
   config:
     activate:
       on-profile: prod
+  docker:
+    compose:
+      enabled: false
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
 logging:
   level:
-    root: INFO
+    root: WARN
     com.smartshare: INFO
+    org.springframework.web: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql: OFF

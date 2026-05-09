@@ -2,6 +2,7 @@ package com.smartshare.controller.test;
 
 import com.smartshare.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Profile("!prod")
 @RestController
 @RequestMapping("/api/public/test/storage")
 @RequiredArgsConstructor
