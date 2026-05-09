@@ -38,8 +38,15 @@ public class GzipCompressionStrategy implements CompressionStrategy {
             InputStream compressedStream = new FileInputStream(tempFile.toFile()) {
                 @Override
                 public void close() throws IOException {
-                    super.close();
-                    Files.deleteIfExists(fileToDelete);
+                    try {
+                        super.close();
+                    } finally {
+                        try {
+                            Files.deleteIfExists(fileToDelete);
+                        } catch (IOException e) {
+                            // Ignore deletion errors on Windows due to delayed file handle release
+                        }
+                    }
                 }
             };
 

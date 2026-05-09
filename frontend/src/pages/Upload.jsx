@@ -134,7 +134,7 @@ export default function Upload() {
 
       {uploading && !conflictData && (
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center">
-          <Loader text="Compressing and securely uploading to MinIO..." />
+          <Loader text="Compressing and securely uploading to AWS S3..." />
         </div>
       )}
 

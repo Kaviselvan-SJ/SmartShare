@@ -9,7 +9,7 @@ import com.smartshare.repository.ShortLinkRepository;
 import com.smartshare.repository.analytics.DownloadAnalyticsRepository;
 import com.smartshare.repository.tag.TagRepository;
 import com.smartshare.service.cache.RedisCacheService;
-import com.smartshare.service.storage.MinioStorageService;
+import com.smartshare.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ public class FileDeletionService {
     private final ShortLinkRepository shortLinkRepository;
     private final TagRepository tagRepository;
     private final DownloadAnalyticsRepository downloadAnalyticsRepository;
-    private final MinioStorageService minioStorageService;
+    private final StorageService storageService;
     private final RedisCacheService redisCacheService;
 
     @Transactional
@@ -84,14 +84,14 @@ public class FileDeletionService {
             fileRepository.flush();
 
             if (isLastHashInstance) {
-                logger.info("Hash {} has no other references. Deleting from MinIO and metadata.", fileHash);
+                logger.info("Hash {} has no other references. Deleting from S3 and metadata.", fileHash);
                 tagRepository.deleteByFileHash(fileHash);
                 downloadAnalyticsRepository.deleteByFileHash(fileHash);
-                if (minioStorageService.objectExists(fileHash)) {
-                    minioStorageService.deleteFile(fileHash);
+                if (storageService.objectExists(fileHash)) {
+                    storageService.deleteFile(fileHash);
                 }
             } else {
-                logger.info("Hash {} is still referenced by other files. Keeping MinIO and metadata.", fileHash);
+                logger.info("Hash {} is still referenced by other files. Keeping S3 object and metadata.", fileHash);
             }
 
             // 7. Audit Logging
