@@ -33,13 +33,17 @@ public class ShortLinkService {
     private final RedisCacheService redisCacheService;
     private final com.smartshare.repository.analytics.DownloadAnalyticsRepository downloadAnalyticsRepository;
 
-    @Value("${spring.application.name:smartshare}")
-    private String appName;
+    @Value("${FRONTEND_URL:http://localhost:5173}")
+    private String frontendUrl;
 
-    // For now, hardcode base URL or pull from config. We will assume
-    // http://localhost:8080
-    // In production, this would be an environment variable like ${app.base-url}
-    private final String baseUrl = "https://smartshare-backend.onrender.com/f/";
+    private String baseUrl;
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        // Short links must point to the FRONTEND /f/:code page so the
+        // FileAccess UI handles password prompts and download-limit dialogs.
+        this.baseUrl = frontendUrl.replaceAll("/$", "") + "/f/";
+    }
 
     @Transactional
     public ShortLinkResponseDTO createShortLink(CreateShortLinkRequestDTO request, String firebaseUid) {
