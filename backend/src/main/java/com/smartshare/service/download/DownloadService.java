@@ -93,8 +93,12 @@ public class DownloadService {
         }
 
         // Step 5: Validate password
-        if (shortLink.getPassword() != null && !shortLink.getPassword().isEmpty()) {
-            if (providedPassword == null || !shortLink.getPassword().equals(providedPassword)) {
+        // Normalise: treat null and blank/whitespace-only as "no password"
+        String storedPassword = shortLink.getPassword() != null ? shortLink.getPassword().trim() : "";
+        String suppliedPassword = providedPassword != null ? providedPassword.trim() : "";
+
+        if (!storedPassword.isEmpty()) {
+            if (!storedPassword.equals(suppliedPassword)) {
                 return DownloadValidationResult.builder().valid(false).message("Password mismatch").build();
             }
         }

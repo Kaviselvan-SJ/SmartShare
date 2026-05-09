@@ -65,13 +65,18 @@ public class ShortLinkService {
             // 5. Generate unique short code
             String shortCode = shortCodeGenerator.generateUniqueCode();
 
+            // Sanitise password: treat blank/whitespace as no password
+            String sanitisedPassword = (request.getPassword() != null && !request.getPassword().trim().isEmpty())
+                    ? request.getPassword().trim()
+                    : null;
+
             // 6. Create and save entity
             ShortLinkEntity shortLink = ShortLinkEntity.builder()
                     .shortCode(shortCode)
                     .file(file)
                     .expiryTime(request.getExpiryTime())
                     .downloadLimit(request.getDownloadLimit())
-                    .password(request.getPassword())
+                    .password(sanitisedPassword)
                     .downloadCount(0)
                     .build();
 
