@@ -36,9 +36,10 @@ public class ShortLinkService {
     @Value("${spring.application.name:smartshare}")
     private String appName;
 
-    // For now, hardcode base URL or pull from config. We will assume http://localhost:8080
+    // For now, hardcode base URL or pull from config. We will assume
+    // http://localhost:8080
     // In production, this would be an environment variable like ${app.base-url}
-    private final String baseUrl = "http://localhost:8080/f/";
+    private final String baseUrl = "https://smartshare-backend.onrender.com/f/";
 
     @Transactional
     public ShortLinkResponseDTO createShortLink(CreateShortLinkRequestDTO request, String firebaseUid) {
@@ -115,7 +116,7 @@ public class ShortLinkService {
 
             // 3. Delete the short link itself
             shortLinkRepository.delete(shortLink);
-            
+
             logger.info("Short link {} and its analytics deleted by owner {}", shortCode, firebaseUid);
         } catch (Exception e) {
             throw new RuntimeException("Failed to delete short link: " + e.getMessage(), e);
