@@ -282,8 +282,8 @@ Create `backend/src/main/resources/application-dev.properties` or set environmen
 ```properties
 # PostgreSQL
 spring.datasource.url=jdbc:postgresql://localhost:5432/smartshare
-spring.datasource.username=postgres
-spring.datasource.password=postgres
+spring.datasource.username=YOUR_DB_USERNAME
+spring.datasource.password=YOUR_DB_PASSWORD
 
 # Redis
 spring.data.redis.host=localhost
@@ -291,8 +291,8 @@ spring.data.redis.port=6379
 
 # MinIO
 minio.endpoint=http://localhost:9000
-minio.access-key=minioadmin
-minio.secret-key=minioadmin
+minio.access-key=YOUR_MINIO_ACCESS_KEY
+minio.secret-key=YOUR_MINIO_SECRET_KEY
 minio.bucket-name=smartshare
 
 # Firebase
