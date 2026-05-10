@@ -14,7 +14,7 @@
 
 **SmartShare** is a production-ready, full-stack file management platform that lets users securely upload, compress, deduplicate, version, and share files via protected short links — with real-time analytics, rate limiting, role-based access control, and a fully featured user profile system.
 
-**Live:** `https://your-frontend.vercel.app` | **API:** `https://your-backend.onrender.com`
+**Live:** `https://smartshareio.vercel.app` | **API:** `https://smartshare-backend.onrender.com`
 
 </div>
 
@@ -315,9 +315,7 @@ AWS_REGION=us-east-1
 FIREBASE_PROJECT_ID=your-firebase-project-id
 # Leave FIREBASE_SERVICE_ACCOUNT_JSON blank to use the local JSON file
 
-# App
-FRONTEND_URL=http://localhost:5173
-ADMIN_EMAILS=admin@yourdomain.com
+
 ```
 
 > **Note:** The `spring-dotenv` library automatically loads `.env` on startup — no manual export needed.
